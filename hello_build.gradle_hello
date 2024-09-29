@@ -1,0 +1,14 @@
+plugins {
+    id 'java' // or 'groovy' if you prefer
+}
+
+task hello {
+    doLast {
+        println 'Hello, Gradle!'
+    }
+}
+
+// Temporarily comment out the wrapper task
+// task wrapper(type: Wrapper) {
+//     gradleVersion = '8.10.1'
+// }

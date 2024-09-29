@@ -6,16 +6,31 @@ buildscript {
         targetSdkVersion = 34
         ndkVersion = "26.1.10909125"
         kotlinVersion = "1.9.22"
+        playServicesLocationVersion = "21.0.1"
     }
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle")
-        classpath("com.facebook.react:react-native-gradle-plugin")
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
+        classpath("com.android.tools.build:gradle:8.0.0") // Specify version for gradle plugin
+        classpath("com.facebook.react:react-native-gradle-plugin:0.72.0") // Check your React Native version and adjust
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
     }
 }
+
+allprojects {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+        google()
+    }
+}
+
+project.ext.vectoricons = [
+    iconFontNames: [ 'FontAwesome.ttf', 'FontAwesome5_Brands.ttf', 'FontAwesome5_Regular.ttf', 'FontAwesome5_Solid.ttf' ] // Add other fonts if necessary
+]
+
+//apply from: "../node_modules/react-native-vector-icons/fonts.gradle"
 
 apply plugin: "com.facebook.react.rootproject"

@@ -1,0 +1,29 @@
+buildscript {
+    ext {
+        buildToolsVersion = "34.0.0"
+        compileSdkVersion = 34
+        minSdkVersion = 23
+        targetSdkVersion = 34
+        kotlinVersion = "1.9.22"
+        reactNativeGradlePluginVersion = "0.71.0" // Adjust based on your react-native version
+    }
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' } // Add this if necessary for certain libraries
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.2.0") // Ensure this matches your AGP version
+        classpath("com.facebook.react:react-native-gradle-plugin:$reactNativeGradlePluginVersion")
+		classpath("com.facebook.react:react-native-gradle-plugin:0.71.0")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' } // Add this if necessary for certain libraries
+    }
+}
