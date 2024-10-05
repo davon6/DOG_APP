@@ -1,22 +1,21 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Dimensions, Alert, PanResponder, ActivityIndicator } from 'react-native';
-import MapView, { Marker, Callout } from 'react-native-maps';
+import { View, StyleSheet, TouchableOpacity, Animated, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useExampleLogic } from '@/hooks/useExampleLogic'; // Use the hook here
-import MapComponent from '@/components/MapComponent'
+import { useExampleLogic } from '@/hooks/useExampleLogic';
+import MapComponent from '@/components/MapComponent';
+import SlidingMenu from '@/components/SlidingMenu';
+
 const { width } = Dimensions.get('window');
 
 const App = () => {
   const [location, setLocation] = useState(null);
-  const [activeMenu, setActiveMenu] = useState(null); // Track the active menu (user, msg, search, gear)
-  const [menuAnim] = useState(new Animated.Value(-width)); // Animation value for sliding menu
+  const [activeMenu, setActiveMenu] = useState(null);
+  const [menuAnim] = useState(new Animated.Value(-width));
 
-  // Destructure users and loading state from the hook
-  const { users, loading, refetch } = useExampleLogic();
+  const { users, loading } = useExampleLogic();
 
   useEffect(() => {
-    // Fetch current user's location
     const watchId = Geolocation.watchPosition(
       (position) => {
         setLocation({
@@ -36,7 +35,7 @@ const App = () => {
   const handleIconPress = (menuType) => {
     setActiveMenu(menuType);
     Animated.timing(menuAnim, {
-      toValue: 0, // Slide in from the left
+      toValue: 0,
       duration: 300,
       useNativeDriver: true,
     }).start();
@@ -44,85 +43,16 @@ const App = () => {
 
   const closeMenu = () => {
     Animated.timing(menuAnim, {
-      toValue: -width, // Slide out to the left
+      toValue: -width,
       duration: 300,
       useNativeDriver: true,
-    }).start(() => setActiveMenu(null)); // Reset active menu after closing
-  };
-
-  // Add pan gesture support to swipe and close the menu
-  const panResponder = PanResponder.create({
-    onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dx < -20, // Detect left swipe
-    onPanResponderMove: (_, gestureState) => {
-      if (gestureState.dx < 0) {
-        menuAnim.setValue(gestureState.dx); // Move with finger
-      }
-    },
-    onPanResponderRelease: (_, gestureState) => {
-      if (gestureState.dx < -width * 0.02) {
-        closeMenu(); // Close the menu if swiped more than 30%
-      } else {
-        Animated.timing(menuAnim, {
-          toValue: 0,
-          duration: 300,
-          useNativeDriver: true,
-        }).start(); // Slide back to original position if swipe is less than 30%
-      }
-    },
-  });
-
-  const renderMenuContent = () => {
-    switch (activeMenu) {
-      case 'user':
-        return (
-          <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 192, 203, 0.8)' }]}>
-            <Text style={styles.menuTitle}>User Profile</Text>
-            <Text style={styles.menuText}>Username: JohnDoe</Text>
-            <Text style={styles.menuText}>Doggy Name: Max</Text>
-            <Text style={styles.menuText}>Doggy Color: Brown</Text>
-            <Text style={styles.menuText}>Doggy Weight: 15 kg</Text>
-            <Text style={styles.menuText}>Doggy Race: Golden Retriever</Text>
-            <Text style={styles.menuText}>Doggy Vibe: Playful</Text>
-          </View>
-        );
-      case 'msg':
-        return (
-          <View style={[styles.menuContent, { backgroundColor: 'rgba(173, 216, 230, 0.8)' }]}>
-            <Text style={styles.menuTitle}>Messages</Text>
-            <Text style={styles.menuText}>Group Chat</Text>
-            <Text style={styles.menuText}>Individual Contacts</Text>
-          </View>
-        );
-      case 'search':
-        return (
-          <View style={[styles.menuContent, { backgroundColor: 'rgba(144, 238, 144, 0.8)' }]}>
-            <Text style={styles.menuTitle}>Search Options</Text>
-            <Text style={styles.menuText}>Lost Items</Text>
-            <Text style={styles.menuText}>Event Creation/Sharing</Text>
-            <Text style={styles.menuText}>Forum</Text>
-            <Text style={styles.menuText}>Business</Text>
-          </View>
-        );
-      case 'gear':
-        return (
-          <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 165, 0, 0.8)' }]}>
-            <Text style={styles.menuTitle}>Settings</Text>
-            <Text style={styles.menuText}>App Skin Choice</Text>
-            <Text style={styles.menuText}>Language</Text>
-            <Text style={styles.menuText}>Password & Email Management</Text>
-            <Text style={styles.menuText}>Logout</Text>
-          </View>
-        );
-      default:
-        return null;
-    }
+    }).start(() => setActiveMenu(null));
   };
 
   return (
     <View style={styles.container}>
-       <MapComponent location={location} users={users} />
+      <MapComponent location={location} users={users} />
 
-      {/* Show the loader while fetching users */}
       {loading && <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />}
 
       <View style={styles.iconContainer}>
@@ -140,16 +70,7 @@ const App = () => {
         </TouchableOpacity>
       </View>
 
-      {/* Sliding Menu */}
-      <Animated.View
-        style={[styles.menu, { transform: [{ translateX: menuAnim }] }]}
-        {...panResponder.panHandlers} // Attach pan gesture responder to menu
-      >
-        <TouchableOpacity onPress={closeMenu} style={styles.closeButton}>
-          <Icon name="close" size={30} color="#fff" />
-        </TouchableOpacity>
-        {renderMenuContent()}
-      </Animated.View>
+      <SlidingMenu activeMenu={activeMenu} menuAnim={menuAnim} closeMenu={closeMenu} />
     </View>
   );
 };
@@ -157,9 +78,6 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  map: {
-    ...StyleSheet.absoluteFillObject,
   },
   loader: {
     position: 'absolute',
@@ -175,7 +93,7 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     justifyContent: 'space-around',
-    backgroundColor: 'rgba(255, 255, 255, 0.7)', // Transparency effect
+    backgroundColor: 'rgba(255, 255, 255, 0.7)',
     paddingVertical: 10,
     borderRadius: 20,
     marginHorizontal: 20,
@@ -183,38 +101,6 @@ const styles = StyleSheet.create({
   iconWrapper: {
     flex: 1,
     alignItems: 'center',
-  },
-  menu: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    width: width * 0.60, // 60% width for the sliding menu
-    backgroundColor: 'rgba(255, 255, 255, 0.02)',//'#fff',
-    zIndex: 1000,
-    shadowColor: '#000',
-    shadowOffset: { width: 2, height: 2 },
-    shadowOpacity: 0.8,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  closeButton: {
-    alignSelf: 'flex-end',
-    padding: 10,
-  },
-  menuContent: {
-    flex: 1,
-    padding: 20,
-    justifyContent: 'space-evenly', // Spread the content evenly
-  },
-  menuTitle: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-  menuText: {
-    fontSize: 18,
-    paddingVertical: 10,
   },
 });
 
