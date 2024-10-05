@@ -4,7 +4,7 @@ import MapView, { Marker, Callout } from 'react-native-maps';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useExampleLogic } from '@/hooks/useExampleLogic'; // Use the hook here
-
+import MapComponent from '@/components/MapComponent'
 const { width } = Dimensions.get('window');
 
 const App = () => {
@@ -120,48 +120,7 @@ const App = () => {
 
   return (
     <View style={styles.container}>
-      <MapView
-        style={styles.map}
-        region={location ? {
-          latitude: location.latitude,
-          longitude: location.longitude,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        } : {
-          latitude: 37.78825,
-          longitude: -122.4324,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        }}
-        showsUserLocation={true}
-      >
-        {/* Display markers for other users */}
-        {users.map((user, index) => (
-          <Marker
-            key={index}
-            coordinate={{
-              latitude: user.LAST_LOCAT_LAT,
-              longitude: user.LAST_LOCAT_LONG,
-            }}
-            title={user.USER_NAME}  // Display username as marker title
-            description={`Tap to view more details`}
-          >
-            <Callout>
-              <View>
-                <Text style={{ fontWeight: 'bold' }}>{user.USER_NAME}</Text>
-                <Text>Doggy Name: {user.DOG_NAME}</Text>
-                <Text>Doggy Color: {user.D_COLOR}</Text>
-                <Text>Doggy Weight: {user.D_WEIGHT}</Text>
-                <Text>Doggy Race: {user.D_RACE}</Text>
-                <Text>Doggy Vibe: {user.D_VIBE}</Text>
-              </View>
-            </Callout>
-          </Marker>
-        ))}
-
-        {/* Your own location marker */}
-        {location && <Marker coordinate={location} />}
-      </MapView>
+       <MapComponent location={location} users={users} />
 
       {/* Show the loader while fetching users */}
       {loading && <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />}
