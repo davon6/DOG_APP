@@ -78,9 +78,7 @@ const SlidingMenu = ({ activeMenu, menuAnim, closeMenu }) => {
       style={[styles.menu, { transform: [{ translateX: menuAnim }] }]}
       {...panResponder.panHandlers}
     >
-      <TouchableOpacity onPress={closeMenu} style={styles.closeButton}>
-        <Icon name="close" size={30} color="#fff" />
-      </TouchableOpacity>
+
       {renderMenuContent()}
     </Animated.View>
   );
@@ -113,3 +111,8 @@ const styles = StyleSheet.create({
 });
 
 export default SlidingMenu;
+
+  /*
+      <TouchableOpacity onPress={closeMenu} style={styles.closeButton}>
+        <Icon name="close" size={30} color="#fff" />
+      </TouchableOpacity > */
