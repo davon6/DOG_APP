@@ -3,6 +3,7 @@
 import axios from 'axios';
 import React, { useState } from 'react';
 import { View, TextInput, Button, Text, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 interface SignInScreenProps {
   navigation: any; // Adjust type as necessary based on your navigation setup
@@ -15,18 +16,31 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
 
   const handleSignIn = async () => {
     try {
-      const response = await axios.post('http://your-server-url/api/users/signin', { username, password });
+      const response = await axios.post('http://172.20.10.8:3000/api/users/signin', { username, password });
+
+
+
       const { token } = response.data;
 
-      // Store the token securely (we'll discuss this in the next section)
-      // You can use AsyncStorage for local storage
+      console.log("token"+ token);
+
+      try {
+         await AsyncStorage.setItem('userToken', token);
+         console.log('Token stored successfully'); // Log success
+       } catch (storageError) {
+         console.error('Failed to store the token:', storageError); // Log the error
+       }
 
       // Navigate to the home screen or wherever you want to go
-      navigation.navigate('Welcome'); // Adjust this based on your navigation structure
+      navigation.navigate('Example'); // Adjust this based on your navigation structure
+
+       console.log('gone to Home ?');
+
     } catch (error) {
       setError('Invalid username or password');
     }
   };
+
 
   return (
     <View style={styles.container}>
