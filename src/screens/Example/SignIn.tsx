@@ -22,19 +22,25 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
 
       const { token } = response.data;
 
-      console.log("token"+ token);
+      //console.log("token 1 "+ response.data.token);
+     // console.log("token 2 "+ response.data.refreshToken);
+
+      //JSON.stringify(response.data)
 
       try {
-         await AsyncStorage.setItem('userToken', token);
-         console.log('Token stored successfully'); // Log success
+         await AsyncStorage.setItem('userToken', response.data.token);
+         await AsyncStorage.setItem('refreshToken', response.data.refreshToken);
+         console.log('Tokens stored successfully'); // Log success
        } catch (storageError) {
          console.error('Failed to store the token:', storageError); // Log the error
        }
 
+
+
       // Navigate to the home screen or wherever you want to go
       navigation.navigate('Example'); // Adjust this based on your navigation structure
 
-       console.log('gone to Home ?');
+
 
     } catch (error) {
       setError('Invalid username or password');
