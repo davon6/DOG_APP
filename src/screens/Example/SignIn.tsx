@@ -27,9 +27,15 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
 
       //JSON.stringify(response.data)
 
+//console.log("alors alors --->"+ JSON.stringify(response.data.user_info));
+
       try {
          await AsyncStorage.setItem('userToken', response.data.token);
          await AsyncStorage.setItem('refreshToken', response.data.refreshToken);
+
+         await AsyncStorage.setItem('user_info', JSON.stringify(response.data.user_info));
+
+
          console.log('Tokens stored successfully'); // Log success
        } catch (storageError) {
          console.error('Failed to store the token:', storageError); // Log the error
