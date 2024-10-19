@@ -12,6 +12,18 @@ const api = axios.create({
   timeout: 5000,
 });
 
+
+async function logOut () {
+
+     try {
+        await AsyncStorage.clear();
+        console.log("AsyncStorage successfully cleared!");
+      } catch (error) {
+        console.error("Error clearing AsyncStorage:", error);
+      }
+        navigate('Welcome');
+  };
+
 // Axios request interceptor to add Authorization token
 api.interceptors.request.use(
   async (config) => {
@@ -53,14 +65,15 @@ api.interceptors.response.use(
           return api(originalRequest);
         } else {
 
-           //  navigation.navigate('Welcome');
-            navigate('Welcome');
+
+            //navigate('Welcome');
+            logOut()
           // Handle no refresh token case (e.g., redirect to login)
         }
       } catch (refreshError) {
         console.error('Error refreshing token:', refreshError);
-          // navigation.navigate('Welcome');
-           navigate('Welcome');
+          //navigate('Welcome');
+                      logOut()
       }
     }
 
