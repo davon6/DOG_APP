@@ -1,10 +1,33 @@
-import React from 'react';
+import React, { useEffect, useContext  }  from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity, PanResponder, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
+//import { useExampleLogic } from '@/hooks/useExampleLogic';
+import { UserContext } from '@/services/Context';
+
+//import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const { width } = Dimensions.get('window'); // Add this to define 'width'
 
+
 const SlidingMenu = ({ activeMenu, menuAnim, closeMenu }) => {
+
+
+const { user } = useContext(UserContext);
+
+
+//console.log("we gooood ?--->"+user.dogName);
+
+ // const { user, loading, fetchUser } = useExampleLogic(); // Destructure fetchUser
+
+
+
+  // Call fetchUser when the activeMenu is 'user'
+  useEffect(() => {
+  /*  if (activeMenu === 'user') {
+      fetchUser('d'); // Fetch user with a specific username
+    }*/
+  }, [activeMenu]);
+
 
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dx < -20,
@@ -26,10 +49,32 @@ const SlidingMenu = ({ activeMenu, menuAnim, closeMenu }) => {
     },
   });
 
-  const renderMenuContent = () => {
+  const renderMenuContent =  () => {
+    /*     if (loading) {
+            return <Text>Loading...</Text>; // Show loading state
+          }*/
+
+     // const user_info = await AsyncStorage.getItem('user_info');
+
+     // console.log("little mess --->>"+ user_info);
+
     switch (activeMenu) {
       case 'user':
+                  if (user) {
+                       return (
+                         <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 192, 203, 0.8)' }]}>
+                           <Text style={styles.menuTitle}>User Profile</Text>
+                           <Text style={styles.menuText}>Username: {user.userName}</Text>
+                           <Text style={styles.menuText}>Doggy Name: {user.dogName}</Text>
+                           <Text style={styles.menuText}>Doggy Color: {user.dogColor}</Text>
+                           <Text style={styles.menuText}>Doggy Weight: {user.dogWeight}</Text>
+                           <Text style={styles.menuText}>Doggy Race: {user.dogRace}</Text>
+                           <Text style={styles.menuText}>Doggy Vibe: {user.dogVibe}</Text>
+                         </View>
+                       );
+                     }
           return (
+
                   <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 192, 203, 0.8)' }]}>
                     <Text style={styles.menuTitle}>User Profile</Text>
                     <Text style={styles.menuText}>Username: JohnDoe</Text>
@@ -79,10 +124,12 @@ const SlidingMenu = ({ activeMenu, menuAnim, closeMenu }) => {
       {...panResponder.panHandlers}
     >
 
-      {renderMenuContent()}
+      {renderMenuContent(user)}
     </Animated.View>
   );
 };
+
+
 
 const styles = StyleSheet.create({
   menu: {
