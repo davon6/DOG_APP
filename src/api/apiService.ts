@@ -1,6 +1,6 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
+//import { UserContext } from '@/services/Context';
 import { navigate } from '@/navigators/navigationHelper';
 
 // Create Axios instance
@@ -13,8 +13,15 @@ const api = axios.create({
 });
 
 
+
+
 async function logOut () {
 
+/*WE ARE VERY MUCH MISSING
+
+ //const { clearUser } = useContext(UserContext);
+
+ */
      try {
         await AsyncStorage.clear();
         console.log("AsyncStorage successfully cleared!");

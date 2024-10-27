@@ -2,7 +2,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { NavigationContainer } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
-import { Example, Welcome, SignIn, SignUp } from '@/screens';
+import { Example, Welcome, SignIn, SignUp, SignUp_2 } from '@/screens';
 import { useTheme } from '@/theme';
 
 import { navigationRef } from './navigationHelper'; // Correct import of global navigation ref
@@ -21,6 +21,7 @@ function ApplicationNavigator() {
           <Stack.Screen name="Welcome" component={Welcome} />
           <Stack.Screen name="SignIn" component={SignIn} />
           <Stack.Screen name="SignUp" component={SignUp} />
+          <Stack.Screen name="SignUp_2" component={SignUp_2} />
         </Stack.Navigator>
       </NavigationContainer>
     </SafeAreaProvider>

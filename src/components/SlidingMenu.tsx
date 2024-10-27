@@ -54,10 +54,6 @@ const { user } = useContext(UserContext);
             return <Text>Loading...</Text>; // Show loading state
           }*/
 
-     // const user_info = await AsyncStorage.getItem('user_info');
-
-     // console.log("little mess --->>"+ user_info);
-
     switch (activeMenu) {
       case 'user':
                   if (user) {
@@ -66,10 +62,13 @@ const { user } = useContext(UserContext);
                            <Text style={styles.menuTitle}>User Profile</Text>
                            <Text style={styles.menuText}>Username: {user.userName}</Text>
                            <Text style={styles.menuText}>Doggy Name: {user.dogName}</Text>
+                           <Text style={styles.menuText}>Doggy Age: {user.dogAge}</Text>
                            <Text style={styles.menuText}>Doggy Color: {user.dogColor}</Text>
+                           <Text style={styles.menuText}>Doggy Size: {user.dogSize}</Text>
                            <Text style={styles.menuText}>Doggy Weight: {user.dogWeight}</Text>
                            <Text style={styles.menuText}>Doggy Race: {user.dogRace}</Text>
-                           <Text style={styles.menuText}>Doggy Vibe: {user.dogVibe}</Text>
+                           <Text style={styles.menuText}>Doggy Personality: {user.dogPersonality}</Text>
+                           <Text style={styles.menuText}>Doggy Hobbies: {user.dogHobbies}</Text>
                          </View>
                        );
                      }

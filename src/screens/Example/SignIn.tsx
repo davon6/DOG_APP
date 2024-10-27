@@ -25,22 +25,11 @@ const { updateUser } = useContext(UserContext);
     try {
       const response = await axios.post('http://172.20.10.8:3000/api/users/signin', { username, password });
 
-
-
-      const { token } = response.data;
-
-      //console.log("token 1 "+ response.data.token);
-     // console.log("token 2 "+ response.data.refreshToken);
-
-      //JSON.stringify(response.data)
-
-//console.log("alors alors --->"+ JSON.stringify(response.data.user_info));
-
       try {
          await AsyncStorage.setItem('userToken', response.data.token);
          await AsyncStorage.setItem('refreshToken', response.data.refreshToken);
 
-         await AsyncStorage.setItem('user_info', JSON.stringify(response.data.user_info));
+         await AsyncStorage.setItem('user_info', JSON.stringify(response.data.dogInfo));
 
 
          console.log('Tokens stored successfully'); // Log success
@@ -49,14 +38,15 @@ const { updateUser } = useContext(UserContext);
        }
 
 
+const finalUser = {
+  ...response.data.dogInfo,
+  "USER_NAME": username
+};
 
-
-updateUser(response.data.user_info);
+updateUser(finalUser);
 
       // Navigate to the home screen or wherever you want to go
       navigation.navigate('Example'); // Adjust this based on your navigation structure
-
-
 
     } catch (error) {
       setError('Invalid username or password');

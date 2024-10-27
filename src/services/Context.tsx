@@ -10,7 +10,10 @@ interface User {
   userIcon: string | null;
   lastLocationLat: number | null;
   lastLocationLong: number | null;
-  dogVibe: string;
+  dogSize: string;
+  dogAge: string;
+  dogPersonality: string;
+  dogHobbies: string;
 }
 
 // Define the context type
@@ -39,7 +42,10 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     userIcon: null,
     lastLocationLat: null,
     lastLocationLong: null,
-    dogVibe: '',
+    dogSize: '',
+    dogAge: '',
+    dogPersonality: '',
+    dogHobbies: ''
   });
 
   const updateUser = (data: any) => {
@@ -54,7 +60,10 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       userIcon: data.USER_ICON,
       lastLocationLat: data.LAST_LOCAT_LAT,
       lastLocationLong: data.LAST_LOCAT_LONG,
-      dogVibe: data.D_VIBE,
+      dogSize: data.D_SIZE,
+      dogAge: data.D_AGE,
+      dogPersonality: data.D_PERSONALITY,
+      dogHobbies: data.D_HOBBIES
     });
   };
 
@@ -68,7 +77,10 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       userIcon: null,
       lastLocationLat: null,
       lastLocationLong: null,
-      dogVibe: '',
+      dogSize: '',
+      dogAge: '',
+      dogPersonality: '',
+      dogHobbies: ''
     });
   };
 
