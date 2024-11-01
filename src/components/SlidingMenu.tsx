@@ -24,7 +24,13 @@ function fixHobbies () {
 
     return;
     };
-*/														
+*/
+
+
+  useEffect(() => {
+    // Close the popup if the active menu changes
+    closePopup();
+  }, [activeMenu]);
 
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dx < -20,
