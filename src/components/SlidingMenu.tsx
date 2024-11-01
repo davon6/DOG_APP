@@ -1,33 +1,30 @@
-import React, { useEffect, useContext  }  from 'react';
+import React, { useEffect, useContext, useState } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity, PanResponder, Dimensions } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-//import { useExampleLogic } from '@/hooks/useExampleLogic';
 import { UserContext } from '@/services/Context';
+import MessagePopup from '@/components/MessagePopup';
 
-//import AsyncStorage from '@react-native-async-storage/async-storage';
-
-const { width } = Dimensions.get('window'); // Add this to define 'width'
-
+const { width } = Dimensions.get('window');
 
 const SlidingMenu = ({ activeMenu, menuAnim, closeMenu }) => {
+  const { user } = useContext(UserContext);
+  const [showPopup, setShowPopup] = useState(false); // State to control the popup
 
+  const openPopup = () => setShowPopup(true);
+  const closePopup = () => setShowPopup(false);
+			const hobbies = [
+  'Playing Fetch', 'Running', 'Swimming', 'Digging', 'Chewing Toys',
+  'Tug-of-War', 'Hide and Seek', 'Agility Training', 'Playing with Balls',
+  'Socializing with Other Dogs', 'Hiking', 'Napping', 'Chasing Squirrels',
+  'Frisbee', 'Cuddling', 'Obstacle Courses', 'Exploring New Places',
+  'Learning Tricks', 'Playing in the Water', 'Walking on Leash'
+];
+/*
+function fixHobbies () {
 
-const { user } = useContext(UserContext);
-
-
-//console.log("we gooood ?--->"+user.dogName);
-
- // const { user, loading, fetchUser } = useExampleLogic(); // Destructure fetchUser
-
-
-
-  // Call fetchUser when the activeMenu is 'user'
-  useEffect(() => {
-  /*  if (activeMenu === 'user') {
-      fetchUser('d'); // Fetch user with a specific username
-    }*/
-  }, [activeMenu]);
-
+    return;
+    };
+*/														
 
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dx < -20,
@@ -37,7 +34,7 @@ const { user } = useContext(UserContext);
       }
     },
     onPanResponderRelease: (_, gestureState) => {
-      if (gestureState.dx < -width * 0.02) {  // Now 'width' is correctly defined
+      if (gestureState.dx < -width * 0.02) {
         closeMenu();
       } else {
         Animated.timing(menuAnim, {
@@ -49,13 +46,9 @@ const { user } = useContext(UserContext);
     },
   });
 
-  const renderMenuContent =  () => {
-    /*     if (loading) {
-            return <Text>Loading...</Text>; // Show loading state
-          }*/
-
+  const renderMenuContent = () => {
     switch (activeMenu) {
-      case 'user':
+   case 'user':
                   if (user) {
                        return (
                          <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 192, 203, 0.8)' }]}>
@@ -83,19 +76,24 @@ const { user } = useContext(UserContext);
                     <Text style={styles.menuText}>Doggy Race: Golden Retriever</Text>
                     <Text style={styles.menuText}>Doggy Vibe: Playful</Text>
                   </View>
-                );
+                );	  
       case 'msg':
-              return (
-                <View style={[styles.menuContent, { backgroundColor: 'rgba(173, 216, 230, 0.8)' }]}>
-                  <Text style={styles.menuTitle}>Messages</Text>
-                  <Text style={styles.menuText}>Group Chat</Text>
-                  <Text style={styles.menuText}>Individual Contacts</Text>
-                </View>
-              );
-            case 'search':
+        return (
+          <View style={[styles.menuContent, { backgroundColor: 'rgba(173, 216, 230, 0.8)' }]}>
+            <Text style={styles.menuTitle}>Messages</Text>
+            <TouchableOpacity style={styles.conversationButton} onPress={openPopup}>
+              <Text style={styles.buttonText}>Conversation with John Doe</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.conversationButton} onPress={openPopup}>
+              <Text style={styles.buttonText}>Group Chat</Text>
+            </TouchableOpacity>
+          </View>
+        );
+		  case 'search':
               return (
                 <View style={[styles.menuContent, { backgroundColor: 'rgba(144, 238, 144, 0.8)' }]}>
                   <Text style={styles.menuTitle}>Search Options</Text>
+                   <Text style={styles.menuText}>New doggies friends</Text>
                   <Text style={styles.menuText}>Lost Items</Text>
                   <Text style={styles.menuText}>Event Creation/Sharing</Text>
                   <Text style={styles.menuText}>Forum</Text>
@@ -118,17 +116,12 @@ const { user } = useContext(UserContext);
   };
 
   return (
-    <Animated.View
-      style={[styles.menu, { transform: [{ translateX: menuAnim }] }]}
-      {...panResponder.panHandlers}
-    >
-
-      {renderMenuContent(user)}
+    <Animated.View style={[styles.menu, { transform: [{ translateX: menuAnim }] }]} {...panResponder.panHandlers}>
+      {renderMenuContent()}
+      {showPopup && <MessagePopup onClose={closePopup} />}
     </Animated.View>
   );
 };
-
-
 
 const styles = StyleSheet.create({
   menu: {
@@ -138,10 +131,6 @@ const styles = StyleSheet.create({
     width: '60%',
     backgroundColor: 'rgba(255, 255, 255, 0.02)',
     zIndex: 1000,
-  },
-  closeButton: {
-    alignSelf: 'flex-end',
-    padding: 10,
   },
   menuContent: {
     flex: 1,
@@ -154,11 +143,17 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
+  conversationButton: {
+    backgroundColor: '#4CAF50',
+    padding: 15,
+    borderRadius: 8,
+    marginVertical: 8,
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 18,
+    textAlign: 'center',
+  },
 });
 
 export default SlidingMenu;
-
-  /*
-      <TouchableOpacity onPress={closeMenu} style={styles.closeButton}>
-        <Icon name="close" size={30} color="#fff" />
-      </TouchableOpacity > */
