@@ -53,12 +53,12 @@ const SignUp_2Screen: React.FC<SignUp_2ScreenProps> = ({ navigation }) => {
                             'Content-Type': 'application/json',  // Ensure this header is present
                           }
                         });
-
+/*
 
                  console.log("what is the matter-->");
 
                      console.log("what is the matter-->"   +JSON.stringify(response));
-
+*/
       if (response.status === 201) {
 
 

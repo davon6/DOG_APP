@@ -1,36 +1,55 @@
+// src/components/SlidingMenu.tsx
 import React, { useEffect, useContext, useState } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity, PanResponder, Dimensions } from 'react-native';
+import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import { setActiveConversation, startConversation } from '@/redux/slices/messagingSlice';
+import { RootState } from '@/redux/store';
 import { UserContext } from '@/services/Context';
-import MessagePopup from '@/components/MessagePopup';
+import MessagePopup from './MessagePopup';
 
 const { width } = Dimensions.get('window');
 
-const SlidingMenu = ({ activeMenu, menuAnim, closeMenu }) => {
+interface SlidingMenuProps {
+  activeMenu: string;
+  menuAnim: Animated.Value;
+  closeMenu: () => void;
+}
+
+const SlidingMenu: React.FC<SlidingMenuProps> = ({ activeMenu, menuAnim, closeMenu }) => {
   const { user } = useContext(UserContext);
-  const [showPopup, setShowPopup] = useState(false); // State to control the popup
+  const [showPopup, setShowPopup] = useState(false);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const dispatch = useDispatch();
 
-  const openPopup = () => setShowPopup(true);
-  const closePopup = () => setShowPopup(false);
-			const hobbies = [
-  'Playing Fetch', 'Running', 'Swimming', 'Digging', 'Chewing Toys',
-  'Tug-of-War', 'Hide and Seek', 'Agility Training', 'Playing with Balls',
-  'Socializing with Other Dogs', 'Hiking', 'Napping', 'Chasing Squirrels',
-  'Frisbee', 'Cuddling', 'Obstacle Courses', 'Exploring New Places',
-  'Learning Tricks', 'Playing in the Water', 'Walking on Leash'
-];
-/*
-function fixHobbies () {
+  // Pull conversations from Redux state
+  const conversations = useSelector((state: RootState) => state.messaging.conversations);
 
-    return;
-    };
-*/
+  // Open popup for a selected conversation
+  const openPopup = (conversationId: string) => {
+    dispatch(setActiveConversation(conversationId));
+    setCurrentConversationId(conversationId);
+    setShowPopup(true);
+  };
 
+  // Close the popup
+  const closePopup = () => {
+    setShowPopup(false);
+    setCurrentConversationId(null);
+  };
 
   useEffect(() => {
     // Close the popup if the active menu changes
     closePopup();
   }, [activeMenu]);
+
+  const initiateConversation = async () => {
+    // Example conversation initiation
+    const conversationId = await dispatch(startConversation(user.userName, 'jean'));
+    if (conversationId) {
+      openPopup(conversationId);
+    }
+  };
 
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dx < -20,
@@ -54,68 +73,67 @@ function fixHobbies () {
 
   const renderMenuContent = () => {
     switch (activeMenu) {
-   case 'user':
-                  if (user) {
-                       return (
-                         <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 192, 203, 0.8)' }]}>
-                           <Text style={styles.menuTitle}>User Profile</Text>
-                           <Text style={styles.menuText}>Username: {user.userName}</Text>
-                           <Text style={styles.menuText}>Doggy Name: {user.dogName}</Text>
-                           <Text style={styles.menuText}>Doggy Age: {user.dogAge}</Text>
-                           <Text style={styles.menuText}>Doggy Color: {user.dogColor}</Text>
-                           <Text style={styles.menuText}>Doggy Size: {user.dogSize}</Text>
-                           <Text style={styles.menuText}>Doggy Weight: {user.dogWeight}</Text>
-                           <Text style={styles.menuText}>Doggy Race: {user.dogRace}</Text>
-                           <Text style={styles.menuText}>Doggy Personality: {user.dogPersonality}</Text>
-                           <Text style={styles.menuText}>Doggy Hobbies: {user.dogHobbies}</Text>
-                         </View>
-                       );
-                     }
-          return (
+      case 'user':
+        return (
+          <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 192, 203, 0.8)' }]}>
+            <Text style={styles.menuTitle}>User Profile</Text>
+            <Text style={styles.menuText}>Username: {user?.userName ?? 'JohnDoe'}</Text>
+            <Text style={styles.menuText}>Doggy Name: {user?.dogName ?? 'Max'}</Text>
+            <Text style={styles.menuText}>Doggy Color: {user?.dogColor ?? 'Brown'}</Text>
+            <Text style={styles.menuText}>Doggy Weight: {user?.dogWeight ?? '15 kg'}</Text>
+            <Text style={styles.menuText}>Doggy Race: {user?.dogRace ?? 'Golden Retriever'}</Text>
+            <Text style={styles.menuText}>Doggy Vibe: {user?.dogPersonality ?? 'Playful'}</Text>
+          </View>
+        );
 
-                  <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 192, 203, 0.8)' }]}>
-                    <Text style={styles.menuTitle}>User Profile</Text>
-                    <Text style={styles.menuText}>Username: JohnDoe</Text>
-                    <Text style={styles.menuText}>Doggy Name: Max</Text>
-                    <Text style={styles.menuText}>Doggy Color: Brown</Text>
-                    <Text style={styles.menuText}>Doggy Weight: 15 kg</Text>
-                    <Text style={styles.menuText}>Doggy Race: Golden Retriever</Text>
-                    <Text style={styles.menuText}>Doggy Vibe: Playful</Text>
-                  </View>
-                );	  
       case 'msg':
         return (
           <View style={[styles.menuContent, { backgroundColor: 'rgba(173, 216, 230, 0.8)' }]}>
             <Text style={styles.menuTitle}>Messages</Text>
-            <TouchableOpacity style={styles.conversationButton} onPress={openPopup}>
-              <Text style={styles.buttonText}>Conversation with John Doe</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.conversationButton} onPress={openPopup}>
-              <Text style={styles.buttonText}>Group Chat</Text>
+
+            {conversations.length > 0 ? (
+              conversations.map((conversation) => (
+                <TouchableOpacity
+                  key={conversation.id}
+                  style={styles.conversationButton}
+                  onPress={() => openPopup(conversation.id)}
+                >
+                  <Text style={styles.buttonText}>Conversation with {conversation.participantName}</Text>
+                </TouchableOpacity>
+              ))
+            ) : (
+              <Text style={styles.noConversationText}>No conversations yet</Text>
+            )}
+
+            <TouchableOpacity style={styles.conversationButton} onPress={initiateConversation}>
+              <Text style={styles.buttonText}>Start Conversation with Rivka</Text>
             </TouchableOpacity>
           </View>
         );
-		  case 'search':
-              return (
-                <View style={[styles.menuContent, { backgroundColor: 'rgba(144, 238, 144, 0.8)' }]}>
-                  <Text style={styles.menuTitle}>Search Options</Text>
-                   <Text style={styles.menuText}>New doggies friends</Text>
-                  <Text style={styles.menuText}>Lost Items</Text>
-                  <Text style={styles.menuText}>Event Creation/Sharing</Text>
-                  <Text style={styles.menuText}>Forum</Text>
-                  <Text style={styles.menuText}>Business</Text>
-                </View>
-              );
-            case 'gear':
-              return (
-                <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 165, 0, 0.8)' }]}>
-                  <Text style={styles.menuTitle}>Settings</Text>
-                  <Text style={styles.menuText}>App Skin Choice</Text>
-                  <Text style={styles.menuText}>Language</Text>
-                  <Text style={styles.menuText}>Password & Email Management</Text>
-                  <Text style={styles.menuText}>Logout</Text>
-                </View>
-              );
+
+      case 'search':
+        return (
+          <View style={[styles.menuContent, { backgroundColor: 'rgba(144, 238, 144, 0.8)' }]}>
+            <Text style={styles.menuTitle}>Search Options</Text>
+            <Text style={styles.menuText}>New doggie friends</Text>
+            <Text style={styles.menuText}>Lost Items</Text>
+            <Text style={styles.menuText}>Event Creation/Sharing</Text>
+            <Text style={styles.menuText}>Forum</Text>
+            <Text style={styles.menuText}>Business</Text>
+          </View>
+        );
+
+      case 'gear':
+        return (
+          <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 165, 0, 0.8)' }]}>
+            <Text style={styles.menuTitle}>Settings</Text>
+            <Text style={styles.menuText}>App Skin Choice</Text>
+            <Text style={styles.menuText}>Language</Text>
+            <Text style={styles.menuText}>Password & Email Management</Text>
+            <Text style={styles.menuText}>Logout</Text>
+          </View>
+        );
+
       default:
         return null;
     }
@@ -124,7 +142,9 @@ function fixHobbies () {
   return (
     <Animated.View style={[styles.menu, { transform: [{ translateX: menuAnim }] }]} {...panResponder.panHandlers}>
       {renderMenuContent()}
-      {showPopup && <MessagePopup onClose={closePopup} />}
+      {showPopup && currentConversationId && (
+        <MessagePopup conversationId={currentConversationId} onClose={closePopup} senderUsername={user.userName}/>
+      )}
     </Animated.View>
   );
 };
@@ -159,6 +179,15 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     textAlign: 'center',
+  },
+  noConversationText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+  },
+  menuText: {
+    fontSize: 16,
+    color: '#333',
   },
 });
 

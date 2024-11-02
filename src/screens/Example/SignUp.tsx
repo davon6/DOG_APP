@@ -103,6 +103,15 @@ navigation.navigate('SignUp_2');
     );
   };
 
+/*
+    const handleHobbyToggle = (hobbyIndex: number) => {
+      setSelectedHobbies((prev) =>
+        prev.includes(hobbyIndex)
+          ? prev.filter((index) => index !== hobbyIndex)
+          : [...prev, hobbyIndex]
+      );
+    };
+*/
   return (
     <ScrollView contentContainerStyle={styles.container}>
       {/* Funky Header */}

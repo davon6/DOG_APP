@@ -1,10 +1,11 @@
 // src/screens/SignInScreen.tsx
-
 import axios from 'axios';
-import React, { useState, useContext  } from 'react';
+import React, { useState, useContext } from 'react';
 import { View, TextInput, Button, Text, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserContext } from '@/services/Context';
+import { useDispatch } from 'react-redux';
+import { fetchAllConversations, fetchUsers } from '@/redux/slices/messagingSlice'
 
 interface SignInScreenProps {
   navigation: any; // Adjust type as necessary based on your navigation setup
@@ -14,45 +15,41 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [error, setError] = useState<string>('');
-
-
-const { updateUser } = useContext(UserContext);
-
+  const { updateUser } = useContext(UserContext);
+  const dispatch = useDispatch();
 
   const handleSignIn = async () => {
-
-
     try {
       const response = await axios.post('http://172.20.10.8:3000/api/users/signin', { username, password });
 
       try {
-         await AsyncStorage.setItem('userToken', response.data.token);
-         await AsyncStorage.setItem('refreshToken', response.data.refreshToken);
+        await AsyncStorage.setItem('userToken', response.data.token);
+        await AsyncStorage.setItem('refreshToken', response.data.refreshToken);
+        await AsyncStorage.setItem('user_info', JSON.stringify(response.data.dogInfo));
 
-         await AsyncStorage.setItem('user_info', JSON.stringify(response.data.dogInfo));
+        console.log('Tokens stored successfully'); // Log success
+      } catch (storageError) {
+        console.error('Failed to store the token:', storageError); // Log the error
+      }
+
+      const finalUser = {
+        ...response.data.dogInfo,
+        USER_NAME: username,
+      };
+
+      updateUser(finalUser);
 
 
-         console.log('Tokens stored successfully'); // Log success
-       } catch (storageError) {
-         console.error('Failed to store the token:', storageError); // Log the error
-       }
 
-
-const finalUser = {
-  ...response.data.dogInfo,
-  "USER_NAME": username
-};
-
-updateUser(finalUser);
-
+        dispatch(fetchUsers());
+      // Fetch all conversations after sign-in
+      dispatch(fetchAllConversations(username));
       // Navigate to the home screen or wherever you want to go
       navigation.navigate('Example'); // Adjust this based on your navigation structure
-
     } catch (error) {
       setError('Invalid username or password');
     }
   };
-
 
   return (
     <View style={styles.container}>
