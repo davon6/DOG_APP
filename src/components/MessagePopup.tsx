@@ -3,13 +3,12 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/redux/store';
-import { sendMessage, fetchMessages } from '@/redux/slices/messagingSlice';
+import { messagingSelectors, sendMessage, fetchMessages } from '@/redux/slices/messagingSlice';
 
 interface MessagePopupProps {
   conversationId: string;
-  senderUsername: string; // Current user's username
-  receiverUsername: string; // Recipient's username
+  senderUsername: string;
+  receiverUsername: string;
   onClose: () => void;
 }
 
@@ -18,29 +17,23 @@ const MessagePopup: React.FC<MessagePopupProps> = ({ conversationId, senderUsern
   const [loadingMore, setLoadingMore] = useState(false);
   const dispatch = useDispatch();
 
-  // Retrieve conversation from Redux store
-  const conversation = useSelector((state: RootState) => state.messaging.conversations[conversationId]);
-  const messages = useSelector((state: RootState) =>
-    conversation ? conversation.messages.map(msgId => state.messaging.messages[msgId]) : []
-  );
-  const hasMore = useSelector((state: RootState) =>
-    conversation ? conversation.hasMore : false
-  );
+  const messages = useSelector(state => messagingSelectors.selectMessagesForConversation(conversationId)(state) || []);
+  const hasMore = useSelector(state => messagingSelectors.selectHasMoreForConversation(state, conversationId));
 
+ // Sort messages by timestamp
+  const sortedMessages = messages.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
   useEffect(() => {
-    // Fetch initial messages if not already fetched
-    if (conversation && conversation.messages.length === 0) {
+    if (messages.length === 0) {
       dispatch(fetchMessages(conversationId, 0, 20));
     }
-  }, [conversationId, dispatch, conversation]);
+  }, [conversationId, dispatch, messages.length]);
 
   const handleSendMessage = async () => {
-    if (messageText.trim() === '') return; // Prevent sending empty messages
-
+    if (messageText.trim() === '') return;
     try {
-      console.log("about to send now", conversationId, senderUsername, messageText);
       await dispatch(sendMessage(conversationId, senderUsername, messageText));
-      setMessageText(''); // Clear input field after sending
+      setMessageText('');
+        dispatch(fetchMessages(conversationId, 0, 20));
     } catch (error) {
       console.error("Error sending message:", error);
       Alert.alert("Failed to send message");
@@ -61,6 +54,14 @@ const MessagePopup: React.FC<MessagePopupProps> = ({ conversationId, senderUsern
     }
   };
 
+  // Optimized component for rendering each message
+  const MessageItem = React.memo(({ item, isOwnMessage }) => (
+    <View style={[styles.messageContainer, isOwnMessage ? styles.ownMessage : styles.otherMessage]}>
+      <Text style={styles.messageText}>{item.text}</Text>
+      <Text style={styles.timestampText}>{new Date(item.timestamp).toLocaleTimeString()}</Text>
+    </View>
+  ));
+
   const renderFooter = () => {
     if (!hasMore) return null;
     return (
@@ -72,7 +73,6 @@ const MessagePopup: React.FC<MessagePopupProps> = ({ conversationId, senderUsern
 
   return (
     <View style={styles.popupContainer}>
-      {/* Popup Header */}
       <View style={styles.popupHeader}>
         <Text style={styles.headerText}>Conversation with {receiverUsername}</Text>
         <TouchableOpacity onPress={onClose}>
@@ -80,50 +80,23 @@ const MessagePopup: React.FC<MessagePopupProps> = ({ conversationId, senderUsern
         </TouchableOpacity>
       </View>
 
-      {/* Messages List */}
       <FlatList
-        data={messages.slice().reverse()} // Reverse to show latest at bottom
-        keyExtractor={(item) => item.id}
+        data={sortedMessages.reverse()}
+        keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View style={[
-            styles.messageContainer,
-            item.senderUsername === senderUsername ? styles.ownMessage : styles.otherMessage
-          ]}>
-
-
-
-      <FlatList
-        data={messages}  // Already sorted by date, oldest to newest
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={[
-            styles.messageContainer,
-            item.senderUsername === senderUsername ? styles.ownMessage : styles.otherMessage
-          ]}>
-            <Text style={styles.messageText}>{item.text}</Text>
-            <Text style={styles.timestampText}>{new Date(item.timestamp).toLocaleTimeString()}</Text>
-          </View>
+          <MessageItem item={item} isOwnMessage={item.senderUsername === senderUsername} />
         )}
         contentContainerStyle={styles.messagesContainer}
-        inverted // This will make the list scroll up for older messages
-        onEndReached={handleLoadMore}  // Load more messages when reaching the top of the list
-        onEndReachedThreshold={0.1}
-        ListFooterComponent={renderFooter}  // Show a loading indicator when loading more
-      />
-
-
-            <Text style={styles.messageText}>{item.text}</Text>
-            <Text style={styles.timestampText}>{new Date(item.timestamp).toLocaleTimeString()}</Text>
-          </View>
-        )}
-        contentContainerStyle={styles.messagesContainer}
-        inverted // Invert FlatList to handle scrolling from bottom
+        inverted
         onEndReached={handleLoadMore}
         onEndReachedThreshold={0.1}
         ListFooterComponent={renderFooter}
+        initialNumToRender={10}
+        maxToRenderPerBatch={5}
+        windowSize={10}
+        getItemLayout={(data, index) => ({ length: 60, offset: 60 * index, index })}
       />
 
-      {/* Message Input */}
       <View style={styles.inputContainer}>
         <TextInput
           style={styles.input}
@@ -168,8 +141,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   messagesContainer: {
-    paddingVertical: 10,
     flexGrow: 1,
+    paddingVertical: 10,
   },
   messageContainer: {
     maxWidth: '80%',
