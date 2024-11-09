@@ -28,17 +28,17 @@ const MessagePopup: React.FC<MessagePopupProps> = ({ conversationId, senderUsern
     }
   }, [conversationId, dispatch, messages.length]);
 
-  const handleSendMessage = async () => {
-    if (messageText.trim() === '') return;
-    try {
-      await dispatch(sendMessage(conversationId, senderUsername, messageText));
-      setMessageText('');
-        dispatch(fetchMessages(conversationId, 0, 20));
-    } catch (error) {
-      console.error("Error sending message:", error);
-      Alert.alert("Failed to send message");
-    }
-  };
+ const handleSendMessage = async () => {
+   if (messageText.trim() === '') return;
+   try {
+     await dispatch(sendMessage(conversationId, senderUsername, messageText));
+     setMessageText('');
+   } catch (error) {
+     console.error("Error sending message:", error);
+     Alert.alert("Failed to send message");
+   }
+ };
+
 
   const handleLoadMore = async () => {
     if (hasMore && !loadingMore) {

@@ -56,12 +56,25 @@ const messagingSlice = createSlice({
     },
     setMessages: (state, action: PayloadAction<{ conversationId: string; messages: Message[]; hasMore: boolean }>) => {
       const { conversationId, messages, hasMore } = action.payload;
+
+      // Ensure the conversation exists in the state
+      if (!state.conversations[conversationId]) {
+        state.conversations[conversationId] = {
+          id: conversationId,
+          participants: [],
+          messages: [],
+          hasMore: true,
+        };
+      }
+
       messages.forEach(msg => {
         state.messages[msg.id] = msg;
         if (!state.conversations[conversationId].messages.includes(msg.id)) {
           state.conversations[conversationId].messages.push(msg.id);
         }
       });
+
+      // Now it’s safe to update hasMore
       state.conversations[conversationId].hasMore = hasMore;
     },
     addMessage: (state, action: PayloadAction<Message>) => {
@@ -79,6 +92,25 @@ const messagingSlice = createSlice({
         state.users[user.id] = user;
       });
     },
+updateMessageId: (state, action: PayloadAction<{ tempId: string; messageId: string }>) => {
+  const { tempId, messageId } = action.payload;
+
+  // Find the temporary message with tempId
+  const message = state.messages[tempId];
+  if (message) {
+    // Update the message with the server-provided messageId
+    state.messages[messageId] = { ...message, id: messageId }; // Copy the message with the new ID
+    delete state.messages[tempId]; // Remove the temporary message
+
+    // Update the conversation's messages array to use the server-provided messageId
+    const conversation = state.conversations[message.conversationId];
+    const index = conversation.messages.indexOf(tempId);
+    if (index > -1) {
+      conversation.messages[index] = messageId;
+    }
+  }
+},
+
   },
 });
 
@@ -102,16 +134,23 @@ export const startConversation = (senderUsername: string, receiverUsername: stri
 
 export const sendMessage = (conversationId: string, senderUsername: string, text: string): AppThunk => async dispatch => {
   try {
+    //  var tempId = uuid.v4();
+
+
+
+          const messageIdFromServer = await apiSendMessage(conversationId, senderUsername, text);
+
+
     dispatch(
       addMessage({
-        id: uuid.v4(),
+        id: messageIdFromServer,
         conversationId,
         senderUsername,
         text,
         timestamp: new Date().toISOString(),
       })
     );
-    apiSendMessage(conversationId, senderUsername, text);
+
   } catch (error) {
     console.error('Error sending message:', error);
     throw error;
@@ -122,7 +161,17 @@ export const fetchMessages = (conversationId: string, offset: number, limit: num
   try {
     const response = await apiFetchMessages(conversationId, offset, limit);
     const { messages, hasMore } = response.data;
-    dispatch(setMessages({ conversationId, messages, hasMore }));
+
+
+
+console.log("lets try again ->"+JSON.stringify(response.data));
+
+
+
+
+    const hasMoreFinal = hasMore !== undefined ? hasMore : true;
+
+    dispatch(setMessages({ conversationId, messages, hasMore:hasMoreFinal}));
   } catch (error) {
     console.error('Error fetching messages:', error);
     throw error;
