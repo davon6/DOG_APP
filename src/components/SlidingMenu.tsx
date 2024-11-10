@@ -34,7 +34,7 @@ const [showNewChatPopup, setShowNewChatPopup] = useState(false);
     </View>
   );
 
-    const tempUsersPull = ['rivka', 'jean', 'james', 'marvin','g','m','r','u', 'eric'];
+  const tempUsersPull = ['rivka', 'jean', 'james', 'marvin','g','m','r','u', 'eric'];
   const { user } = useContext(UserContext);
   const [showPopup, setShowPopup] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
@@ -50,10 +50,18 @@ const [showNewChatPopup, setShowNewChatPopup] = useState(false);
   const openPopup = (conversationId?: string, receiverUsername?: string) => {
 
     if (conversationId) {
-      dispatch(setActiveConversation(conversationId));
+
+
+console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
+
+
+      dispatch(setActiveConversation({conversationId, otherUser:receiverUsername}));
       setCurrentConversationId(conversationId);
       setNewChatReceiver(receiverUsername);
     } else if (receiverUsername) {
+
+        console.log("new conversation ID , no exisitn so ->"+receiverUsername);
+
       setNewChatReceiver(receiverUsername);
     }
     setShowPopup(true);
@@ -73,7 +81,7 @@ const [showNewChatPopup, setShowNewChatPopup] = useState(false);
     if (!showPopup) {
       const conversationId = await dispatch(startConversation(user.userName, username));
       if (conversationId) {
-        openPopup(conversationId);
+        openPopup(conversationId, username);
       } else {
 	   setShowNewChatPopup(false);//DAVID
         openPopup(undefined, username); // New chat mode

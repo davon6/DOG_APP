@@ -183,14 +183,14 @@ export const sendMessage = (conversationId: string, senderUsername: string, text
     );
 
 // Usage
-
+/*
 console.log("ISO format with specified time zone:", toISOWithTimeZone(date, "Europe/Paris"));
 
 
 console.log("what a story "+ new Date().toLocaleTimeString()+ " new Date().toISOString() "+new Date().toISOString());
 console.log("Timezone offset:", new Date().getTimezoneOffset()); // in minutes
 console.log("Local time with explicit time zone:", new Date().toLocaleString("en-GB", { timeZone: "Europe/Paris" }));
-
+*/
     const messageIdFromServer = await apiSendMessage(conversationId, senderUsername, text);
     dispatch(updateMessageId({ tempId, messageId: messageIdFromServer }));
 
@@ -230,8 +230,6 @@ export const fetchAllConversations = (username: string): AppThunk => async dispa
      console.log("inside fetchAllConversations"+ JSON.stringify(response));
 
     const conversations: Conversation[] = response.data;
-
-
 
     if (Array.isArray(conversations)) {
       dispatch(setConversations(conversations));
