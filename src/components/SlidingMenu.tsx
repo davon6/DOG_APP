@@ -82,6 +82,7 @@ console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
       const conversationId = await dispatch(startConversation(user.userName, username));
       if (conversationId) {
         openPopup(conversationId, username);
+		  setShowNewChatPopup(false);//DAVID
       } else {
 	   setShowNewChatPopup(false);//DAVID
         openPopup(undefined, username); // New chat mode
