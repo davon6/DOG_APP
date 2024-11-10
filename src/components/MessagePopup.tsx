@@ -1,50 +1,61 @@
-// src/components/MessagePopup.tsx
 import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Alert } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useSelector, useDispatch } from 'react-redux';
-import { messagingSelectors, sendMessage, fetchMessages } from '@/redux/slices/messagingSlice';
+import { messagingSelectors, sendMessage, fetchMessages, startConversation } from '@/redux/slices/messagingSlice';
 
 interface MessagePopupProps {
-  conversationId: string;
+  conversationId?: string; // Optional for new chat mode
   senderUsername: string;
-  receiverUsername: string;
+  receiverUsername?: string; // Optional for new chat mode
   onClose: () => void;
 }
 
 const MessagePopup: React.FC<MessagePopupProps> = ({ conversationId, senderUsername, receiverUsername, onClose }) => {
   const [messageText, setMessageText] = useState('');
   const [loadingMore, setLoadingMore] = useState(false);
+  const [newReceiverUsername, setNewReceiverUsername] = useState(receiverUsername || '');
+  const [newChatMode, setNewChatMode] = useState(!conversationId); // Set to true if no conversationId
   const dispatch = useDispatch();
 
-  const messages = useSelector(state => messagingSelectors.selectMessagesForConversation(conversationId)(state) || []);
-  const hasMore = useSelector(state => messagingSelectors.selectHasMoreForConversation(state, conversationId));
+  const messages = useSelector(state => messagingSelectors.selectMessagesForConversation(conversationId || '')(state) || []);
+  const hasMore = useSelector(state => messagingSelectors.selectHasMoreForConversation(state, conversationId || ''));
 
- // Sort messages by timestamp
-  const sortedMessages = messages.slice().sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+const sortedMessages = React.useMemo(() => {
+  return messages.slice().sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+}, [messages]);
   useEffect(() => {
-    if (messages.length === 0) {
+    if (conversationId && messages.length === 0) {
       dispatch(fetchMessages(conversationId, 0, 20));
     }
   }, [conversationId, dispatch, messages.length]);
 
- const handleSendMessage = async () => {
-   if (messageText.trim() === '') return;
-   try {
-     await dispatch(sendMessage(conversationId, senderUsername, messageText));
-     setMessageText('');
-   } catch (error) {
-     console.error("Error sending message:", error);
-     Alert.alert("Failed to send message");
-   }
- };
-
+  const handleSendMessage = async () => {
+    if (messageText.trim() === '') return;
+    try {
+      if (newChatMode) {
+        // Start a new conversation if in new chat mode
+        const newConversationId = await dispatch(startConversation(senderUsername, newReceiverUsername));
+        if (newConversationId) {
+          setNewChatMode(false); // Switch to conversation view mode
+          setNewReceiverUsername(''); // Clear receiver input
+        }
+      }
+      // Send message in the current conversation
+      await dispatch(sendMessage(conversationId || '', senderUsername, messageText));
+      setMessageText('');
+    } catch (error) {
+      console.error("Error sending message:", error);
+      Alert.alert("Failed to send message");
+    }
+  };
 
   const handleLoadMore = async () => {
     if (hasMore && !loadingMore) {
       setLoadingMore(true);
       try {
-        await dispatch(fetchMessages(conversationId, messages.length, 20));
+        await dispatch(fetchMessages(conversationId || '', messages.length, 20));
       } catch (error) {
         console.error("Error loading more messages:", error);
         Alert.alert("Failed to load more messages");
@@ -54,7 +65,6 @@ const MessagePopup: React.FC<MessagePopupProps> = ({ conversationId, senderUsern
     }
   };
 
-  // Optimized component for rendering each message
   const MessageItem = React.memo(({ item, isOwnMessage }) => (
     <View style={[styles.messageContainer, isOwnMessage ? styles.ownMessage : styles.otherMessage]}>
       <Text style={styles.messageText}>{item.text}</Text>
@@ -74,28 +84,41 @@ const MessagePopup: React.FC<MessagePopupProps> = ({ conversationId, senderUsern
   return (
     <View style={styles.popupContainer}>
       <View style={styles.popupHeader}>
-        <Text style={styles.headerText}>Conversation with {receiverUsername}</Text>
+        <Text style={styles.headerText}>
+          {newChatMode ? 'Start a New Conversation' : `Conversation with ${receiverUsername}`}
+        </Text>
         <TouchableOpacity onPress={onClose}>
           <Icon name="close" size={24} color="#333" />
         </TouchableOpacity>
       </View>
 
-      <FlatList
-        data={sortedMessages.reverse()}
-        keyExtractor={(item) => item.id.toString()}
-        renderItem={({ item }) => (
-          <MessageItem item={item} isOwnMessage={item.senderUsername === senderUsername} />
-        )}
-        contentContainerStyle={styles.messagesContainer}
-        inverted
-        onEndReached={handleLoadMore}
-        onEndReachedThreshold={0.1}
-        ListFooterComponent={renderFooter}
-        initialNumToRender={10}
-        maxToRenderPerBatch={5}
-        windowSize={10}
-        getItemLayout={(data, index) => ({ length: 60, offset: 60 * index, index })}
-      />
+      {newChatMode ? (
+        <View style={styles.newChatContainer}>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter username to start chat"
+            value={newReceiverUsername}
+            onChangeText={setNewReceiverUsername}
+          />
+        </View>
+      ) : (
+        <FlatList
+          data={sortedMessages}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <MessageItem item={item} isOwnMessage={item.senderUsername === senderUsername} />
+          )}
+          contentContainerStyle={styles.messagesContainer}
+          inverted
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.1}
+          ListFooterComponent={renderFooter}
+          initialNumToRender={10}
+          maxToRenderPerBatch={5}
+          windowSize={10}
+          getItemLayout={(data, index) => ({ length: 60, offset: 60 * index, index })}
+        />
+      )}
 
       <View style={styles.inputContainer}>
         <TextInput
@@ -143,6 +166,9 @@ const styles = StyleSheet.create({
   messagesContainer: {
     flexGrow: 1,
     paddingVertical: 10,
+  },
+  newChatContainer: {
+    marginBottom: 10,
   },
   messageContainer: {
     maxWidth: '80%',

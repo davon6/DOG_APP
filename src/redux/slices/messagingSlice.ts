@@ -1,9 +1,15 @@
 // src/redux/slices/messagingSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { AppThunk } from '@/redux/store';
-import { getAllConversations as gAC, fetchUsrs as apiFetchUsers, startConversation as apiStartConversation, sendMessage as apiSendMessage, fetchMessages as apiFetchMessages } from '@/api/apiService';
+import {
+  getAllConversations as gAC,
+  fetchUsrs as apiFetchUsers,
+  startConversation as apiStartConversation,
+  sendMessage as apiSendMessage,
+  fetchMessages as apiFetchMessages
+} from '@/api/apiService';
 import uuid from 'react-native-uuid';
-import * as messagingSelectors from '@/redux/selectors'; // Import selectors
+import * as messagingSelectors from '@/redux/selectors';
 
 export interface Message {
   id: string;
@@ -18,6 +24,7 @@ export interface Conversation {
   participants: string[];
   messages: string[];
   hasMore: boolean;
+  otherUser: string;
 }
 
 interface User {
@@ -57,7 +64,6 @@ const messagingSlice = createSlice({
     setMessages: (state, action: PayloadAction<{ conversationId: string; messages: Message[]; hasMore: boolean }>) => {
       const { conversationId, messages, hasMore } = action.payload;
 
-      // Ensure the conversation exists in the state
       if (!state.conversations[conversationId]) {
         state.conversations[conversationId] = {
           id: conversationId,
@@ -74,17 +80,13 @@ const messagingSlice = createSlice({
         }
       });
 
-      // Now it’s safe to update hasMore
       state.conversations[conversationId].hasMore = hasMore;
     },
     addMessage: (state, action: PayloadAction<Message>) => {
       const message = action.payload;
       state.messages[message.id] = message;
       if (state.conversations[message.conversationId]) {
-        state.conversations[message.conversationId].messages = [
-          ...state.conversations[message.conversationId].messages,
-          message.id,
-        ];
+        state.conversations[message.conversationId].messages.push(message.id);
       }
     },
     setUsers: (state, action: PayloadAction<User[]>) => {
@@ -92,34 +94,43 @@ const messagingSlice = createSlice({
         state.users[user.id] = user;
       });
     },
-updateMessageId: (state, action: PayloadAction<{ tempId: string; messageId: string }>) => {
-  const { tempId, messageId } = action.payload;
+   updateMessageId: (state, action: PayloadAction<{ tempId: string; messageId: string }>) => {
+     const { tempId, messageId } = action.payload;
+     const message = state.messages[tempId];
+     if (message) {
+       // Create a new message object with the real ID
+       state.messages[messageId] = { ...message, id: messageId };
+       delete state.messages[tempId];
 
-  // Find the temporary message with tempId
-  const message = state.messages[tempId];
-  if (message) {
-    // Update the message with the server-provided messageId
-    state.messages[messageId] = { ...message, id: messageId }; // Copy the message with the new ID
-    delete state.messages[tempId]; // Remove the temporary message
+       const conversation = state.conversations[message.conversationId];
+       if (conversation) {
+         const messageIndex = conversation.messages.indexOf(tempId);
+         if (messageIndex > -1) {
+           // Replace the temp ID with the real ID in the conversation messages list
+           conversation.messages[messageIndex] = messageId;
 
-    // Update the conversation's messages array to use the server-provided messageId
-    const conversation = state.conversations[message.conversationId];
-    const index = conversation.messages.indexOf(tempId);
-    if (index > -1) {
-      conversation.messages[index] = messageId;
-    }
-  }
-},
+           // Trigger re-render by creating a new shallow copy of the messages array
+           state.conversations[message.conversationId].messages = [...conversation.messages];
+         }
+       }
+     }
+   },
 
   },
 });
 
-export const { setActiveConversation, setConversations, addConversation, setMessages, addMessage, setUsers } = messagingSlice.actions;
+export const {
+  setActiveConversation,
+  setConversations,
+  addConversation,
+  setMessages,
+  addMessage,
+  setUsers,
+  updateMessageId,
+} = messagingSlice.actions;
 
-// Export selectors for easy use in components
 export { messagingSelectors };
 
-// Export async actions
 export const startConversation = (senderUsername: string, receiverUsername: string): AppThunk => async dispatch => {
   try {
     const conversationId = await apiStartConversation(senderUsername, receiverUsername);
@@ -132,25 +143,64 @@ export const startConversation = (senderUsername: string, receiverUsername: stri
   }
 };
 
+
+function toISOWithTimeZone(date, timeZone) {
+  const options = {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    fractionalSecondDigits: 3
+  };
+
+  const parts = new Intl.DateTimeFormat('en-GB', options)
+    .formatToParts(date)
+    .reduce((acc, part) => {
+      acc[part.type] = part.value;
+      return acc;
+    }, {});
+
+  return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}.${String(date.getMilliseconds()).padStart(3, '0')}Z`;
+}
+
+
 export const sendMessage = (conversationId: string, senderUsername: string, text: string): AppThunk => async dispatch => {
   try {
-    //  var tempId = uuid.v4();
-
-
-
-          const messageIdFromServer = await apiSendMessage(conversationId, senderUsername, text);
-
+    const tempId = uuid.v4().toString();
+    const date = new Date();
 
     dispatch(
       addMessage({
-        id: messageIdFromServer,
+        id: tempId,
         conversationId,
         senderUsername,
         text,
-        timestamp: new Date().toISOString(),
+        timestamp: toISOWithTimeZone(date, "Europe/Paris"),
       })
     );
 
+// Usage
+
+console.log("ISO format with specified time zone:", toISOWithTimeZone(date, "Europe/Paris"));
+
+
+console.log("what a story "+ new Date().toLocaleTimeString()+ " new Date().toISOString() "+new Date().toISOString());
+console.log("Timezone offset:", new Date().getTimezoneOffset()); // in minutes
+console.log("Local time with explicit time zone:", new Date().toLocaleString("en-GB", { timeZone: "Europe/Paris" }));
+
+    const messageIdFromServer = await apiSendMessage(conversationId, senderUsername, text);
+    dispatch(updateMessageId({ tempId, messageId: messageIdFromServer }));
+
+/*
+     dispatch(addMessage({ id: messageIdFromServer,
+                                 conversationId,
+                                 senderUsername,
+                                 text,
+                                 timestamp: new Date().toISOString()}));
+*/
   } catch (error) {
     console.error('Error sending message:', error);
     throw error;
@@ -162,26 +212,27 @@ export const fetchMessages = (conversationId: string, offset: number, limit: num
     const response = await apiFetchMessages(conversationId, offset, limit);
     const { messages, hasMore } = response.data;
 
-
-
-console.log("lets try again ->"+JSON.stringify(response.data));
-
-
-
-
-    const hasMoreFinal = hasMore !== undefined ? hasMore : true;
-
-    dispatch(setMessages({ conversationId, messages, hasMore:hasMoreFinal}));
+    dispatch(setMessages({ conversationId, messages, hasMore: hasMore ?? true }));
   } catch (error) {
     console.error('Error fetching messages:', error);
     throw error;
   }
 };
 
-export const fetchAllConversations = (username): AppThunk => async dispatch => {
+export const fetchAllConversations = (username: string): AppThunk => async dispatch => {
   try {
+
+
+      console.log("inside fetchAllConversations");
     const response = await gAC(username);
+
+
+     console.log("inside fetchAllConversations"+ JSON.stringify(response));
+
     const conversations: Conversation[] = response.data;
+
+
+
     if (Array.isArray(conversations)) {
       dispatch(setConversations(conversations));
       conversations.forEach(conv => {

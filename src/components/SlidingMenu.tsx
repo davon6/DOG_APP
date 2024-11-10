@@ -1,6 +1,5 @@
-// src/components/SlidingMenu.tsx
 import React, { useEffect, useContext, useState } from 'react';
-import { View, Text, StyleSheet, Animated, TouchableOpacity, PanResponder, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Animated, TouchableWithoutFeedback,TouchableOpacity, PanResponder, Dimensions, ScrollView } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { setActiveConversation, startConversation } from '@/redux/slices/messagingSlice';
@@ -17,37 +16,68 @@ interface SlidingMenuProps {
 }
 
 const SlidingMenu: React.FC<SlidingMenuProps> = ({ activeMenu, menuAnim, closeMenu }) => {
+const [showNewChatPopup, setShowNewChatPopup] = useState(false);
+
+  const NewChatPopup: React.FC<{ onClose: () => void; onSelectUser: (username: string) => void }> = ({ onClose, onSelectUser }) => (
+    <View style={styles.popupContainer}>
+      <View style={styles.popupHeader}>
+        <Text style={styles.headerText}>Start a New Chat</Text>
+        <TouchableOpacity onPress={onClose}>
+          <Icon name="close" size={24} color="black" />
+        </TouchableOpacity>
+      </View>
+      {tempUsersPull.map((username) => (
+        <TouchableOpacity key={username} style={styles.userButton} onPress={() => onSelectUser(username)}>
+          <Text style={styles.buttonText}>{username}</Text>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+    const tempUsersPull = ['rivka', 'jean', 'james', 'marvin','g','m','r','u', 'eric'];
   const { user } = useContext(UserContext);
   const [showPopup, setShowPopup] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [newChatReceiver, setNewChatReceiver] = useState<string | null>(null);
+  //const { user } = useContext(UserContext);
   const dispatch = useDispatch();
 
-  // Pull conversations from Redux state
+  // Get conversations as an object and users as an object
   const conversations = useSelector((state: RootState) => state.messaging.conversations);
+  const users = useSelector((state: RootState) => state.messaging.users);
+  const messages = useSelector((state: RootState) => state.messaging.messages);
 
-  // Open popup for a selected conversation
-  const openPopup = (conversationId: string) => {
-    dispatch(setActiveConversation(conversationId));
-    setCurrentConversationId(conversationId);
+  const openPopup = (conversationId?: string, receiverUsername?: string) => {
+
+    if (conversationId) {
+      dispatch(setActiveConversation(conversationId));
+      setCurrentConversationId(conversationId);
+      setNewChatReceiver(receiverUsername);
+    } else if (receiverUsername) {
+      setNewChatReceiver(receiverUsername);
+    }
     setShowPopup(true);
   };
 
-  // Close the popup
   const closePopup = () => {
     setShowPopup(false);
     setCurrentConversationId(null);
+    setNewChatReceiver(null);
   };
 
   useEffect(() => {
-    // Close the popup if the active menu changes
     closePopup();
   }, [activeMenu]);
 
-  const initiateConversation = async () => {
-    // Example conversation initiation
-    const conversationId = await dispatch(startConversation(user.userName, 'jean'));
-    if (conversationId) {
-      openPopup(conversationId);
+  const initiateConversation = async (username: string) => {
+    if (!showPopup) {
+      const conversationId = await dispatch(startConversation(user.userName, username));
+      if (conversationId) {
+        openPopup(conversationId);
+      } else {
+	   setShowNewChatPopup(false);//DAVID
+        openPopup(undefined, username); // New chat mode
+      }
     }
   };
 
@@ -72,46 +102,72 @@ const SlidingMenu: React.FC<SlidingMenuProps> = ({ activeMenu, menuAnim, closeMe
   });
 
   const renderMenuContent = () => {
+    // Convert conversations object to an array using Object.values()
+    const conversationList = Object.values(conversations);
+
     switch (activeMenu) {
-      case 'user':
+	   case 'user':
         return (
           <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 192, 203, 0.8)' }]}>
             <Text style={styles.menuTitle}>User Profile</Text>
             <Text style={styles.menuText}>Username: {user?.userName ?? 'JohnDoe'}</Text>
+																										
             <Text style={styles.menuText}>Doggy Name: {user?.dogName ?? 'Max'}</Text>
             <Text style={styles.menuText}>Doggy Color: {user?.dogColor ?? 'Brown'}</Text>
             <Text style={styles.menuText}>Doggy Weight: {user?.dogWeight ?? '15 kg'}</Text>
             <Text style={styles.menuText}>Doggy Race: {user?.dogRace ?? 'Golden Retriever'}</Text>
             <Text style={styles.menuText}>Doggy Vibe: {user?.dogPersonality ?? 'Playful'}</Text>
+            <Text style={styles.menuText}>Doggy Friends: {'None, looser'}</Text>
           </View>
         );
-
       case 'msg':
         return (
           <View style={[styles.menuContent, { backgroundColor: 'rgba(173, 216, 230, 0.8)' }]}>
             <Text style={styles.menuTitle}>Messages</Text>
 
-            {conversations.length > 0 ? (
-              conversations.map((conversation) => (
-                <TouchableOpacity
-                  key={conversation.id}
-                  style={styles.conversationButton}
-                  onPress={() => openPopup(conversation.id)}
-                >
-                  <Text style={styles.buttonText}>Conversation with {conversation.participantName}</Text>
-                </TouchableOpacity>
-              ))
+            <TouchableWithoutFeedback style={styles.startChatButton} onPress={() =>/* setShowPopup(true)*/setShowNewChatPopup(true)}>
+              <Text style={styles.buttonText}>Start New Chat</Text>
+            </TouchableWithoutFeedback>
+
+            {conversationList.length > 0 ? (
+              <ScrollView style={styles.conversationList}>
+                {conversationList.map((conversation) => {
+                  // Get the participant user ID(s) from the conversation
+                  const participantIds = conversation.participants.filter((id) => id !== user.id);
+
+                  // Get the participant's name from the users state using the ID
+                  const participantName = conversation.otherUser || 'Unknown User';
+
+                  // Get the last message for the conversation
+                  const lastMessageId = conversation.messages[conversation.messages.length - 1];
+                  const lastMessage = messages[lastMessageId];
+
+                  // Only display conversations that have messages
+                  if (!lastMessage) return null;
+
+                  return (
+                    <TouchableWithoutFeedback key={conversation.id} onPress={() => openPopup(conversation.id, participantName, )}>
+                      <View style={styles.conversationItem}>
+                        <View style={styles.chatHeader}>
+                          {/* Light blue background for "Chat with [User]" */}
+                          <Text style={styles.placeholderText}>Chat with {participantName}</Text>
+                        </View>
+
+                        {/* Last message text aligned to the left */}
+                        <Text style={styles.latestMessageText}>
+                          {lastMessage.text || 'No message text'}
+                        </Text>
+                      </View>
+                    </TouchableWithoutFeedback>
+                  );
+                })}
+              </ScrollView>
             ) : (
               <Text style={styles.noConversationText}>No conversations yet</Text>
             )}
-
-            <TouchableOpacity style={styles.conversationButton} onPress={initiateConversation}>
-              <Text style={styles.buttonText}>Start Conversation with Rivka</Text>
-            </TouchableOpacity>
           </View>
         );
-
-      case 'search':
+   case 'search':
         return (
           <View style={[styles.menuContent, { backgroundColor: 'rgba(144, 238, 144, 0.8)' }]}>
             <Text style={styles.menuTitle}>Search Options</Text>
@@ -129,6 +185,12 @@ const SlidingMenu: React.FC<SlidingMenuProps> = ({ activeMenu, menuAnim, closeMe
             <Text style={styles.menuTitle}>Settings</Text>
             <Text style={styles.menuText}>App Skin Choice</Text>
             <Text style={styles.menuText}>Language</Text>
+							 
+											   
+					
+				   
+						   
+				 
             <Text style={styles.menuText}>Password & Email Management</Text>
             <Text style={styles.menuText}>Logout</Text>
           </View>
@@ -142,9 +204,20 @@ const SlidingMenu: React.FC<SlidingMenuProps> = ({ activeMenu, menuAnim, closeMe
   return (
     <Animated.View style={[styles.menu, { transform: [{ translateX: menuAnim }] }]} {...panResponder.panHandlers}>
       {renderMenuContent()}
-      {showPopup && currentConversationId && (
-        <MessagePopup conversationId={currentConversationId} onClose={closePopup} senderUsername={user.userName}/>
+      {showPopup && (
+        <MessagePopup
+          conversationId={currentConversationId || undefined}
+          senderUsername={user.userName}
+          receiverUsername={newChatReceiver || undefined}
+          onClose={closePopup}
+        />
       )}
+	   {showNewChatPopup && (
+         <NewChatPopup
+           onClose={() => setShowNewChatPopup(false)}
+           onSelectUser={(username) => initiateConversation(username)}
+         />
+       )}
     </Animated.View>
   );
 };
@@ -169,26 +242,87 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     textAlign: 'center',
   },
-  conversationButton: {
-    backgroundColor: '#4CAF50',
-    padding: 15,
+  conversationItem: {
+    backgroundColor: '#ADD8E6', // Light blue background for the entire item
+    padding: 12, // Smaller padding for a cleaner look
     borderRadius: 8,
     marginVertical: 8,
+    borderWidth: 1,
+    borderColor: '#fff', // White border to differentiate items
   },
-  buttonText: {
-    color: '#fff',
+  chatHeader: {
+    backgroundColor: '#ADD8E6', // Light blue for the header
+    borderRadius: 8,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    marginBottom: 5,
+  },
+  placeholderText: {
+    color: '#333',
     fontSize: 18,
-    textAlign: 'center',
+    fontWeight: 'bold',
+    textAlign: 'center', // Keeping header text centered
+  },
+  latestMessageText: {
+    color: '#555',
+    fontSize: 14,
+    textAlign: 'left', // Align last message text to the left
+    marginTop: 5,
   },
   noConversationText: {
     fontSize: 16,
     color: '#333',
     textAlign: 'center',
   },
-  menuText: {
-    fontSize: 16,
-    color: '#333',
+  conversationList: {
+    flex: 1,
+    marginTop: 20,
   },
+  startChatButton: {
+    backgroundColor: '#4682B4',
+    padding: 8, // Smaller button
+    borderRadius: 8,
+    marginVertical: 8,
+    alignSelf: 'center',
+	},
+  popupContainer: {
+    position: 'absolute',
+    top: '10%',
+    left: '5%',
+    width: '90%',
+    height: '80%',
+    backgroundColor: 'white',
+    borderRadius: 15,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 10,
+    zIndex: 2000,
+  },
+  popupHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+headerText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+   userButton: {
+    backgroundColor: '#87CEEB',
+    padding: 12,
+    borderRadius: 8,
+    marginVertical: 5,
+  },
+
 });
 
 export default SlidingMenu;
