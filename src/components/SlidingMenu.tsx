@@ -43,7 +43,9 @@ const [showNewChatPopup, setShowNewChatPopup] = useState(false);
   const dispatch = useDispatch();
 
   // Get conversations as an object and users as an object
-  const conversations = useSelector((state: RootState) => state.messaging.conversations);
+  //const conversations = useSelector((state: RootState) => state.messaging.conversations);
+  const conversations = useSelector((state) => Object.values(state.messaging.conversations));
+
   const users = useSelector((state: RootState) => state.messaging.users);
   const messages = useSelector((state: RootState) => state.messaging.messages);
 
@@ -77,10 +79,18 @@ console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
     closePopup();
   }, [activeMenu]);
 
+  useEffect(() => {
+    console.log(conversations); // Verify that each conversation has `otherUser` populated correctly here
+  }, [conversations]);
+
+
   const initiateConversation = async (username: string) => {
     if (!showPopup) {
       const conversationId = await dispatch(startConversation(user.userName, username));
       if (conversationId) {
+
+
+          console.log("we always go to conversationId acquired");
         openPopup(conversationId, username);
 		  setShowNewChatPopup(false);//DAVID
       } else {
@@ -144,8 +154,11 @@ console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
                   // Get the participant user ID(s) from the conversation
                   const participantIds = conversation.participants.filter((id) => id !== user.id);
 
+console.log("feeling lost "+ JSON.stringify(conversation));
+
                   // Get the participant's name from the users state using the ID
                   const participantName = conversation.otherUser || 'Unknown User';
+                // const participantName = conversation.participants[1] || 'Unknown User';
 
                   // Get the last message for the conversation
                   const lastMessageId = conversation.messages[conversation.messages.length - 1];

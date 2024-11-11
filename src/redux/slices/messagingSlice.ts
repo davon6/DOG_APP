@@ -51,6 +51,9 @@ const messagingSlice = createSlice({
   initialState,
   reducers: {
     setActiveConversation: (state, action: PayloadAction<string>) => {
+
+        console.log("setActiveConversation action.payload"+ JSON.stringify(action.payload));
+
       state.activeConversation = action.payload;
     },
     setConversations: (state, action: PayloadAction<Conversation[]>) => {
@@ -58,9 +61,35 @@ const messagingSlice = createSlice({
         state.conversations[conv.id] = conv;
       });
     },
+/*
     addConversation: (state, action: PayloadAction<Conversation>) => {
       state.conversations[action.payload.id] = action.payload;
-    },
+    },*/
+
+addConversation: (state, action: PayloadAction<Conversation>) => {
+  const conversation = action.payload;
+
+  console.log("addconversation payload "+ JSON.stringify(conversation));
+
+  // Log to verify when a conversation has missing participants
+  if (!conversation.participants || conversation.participants.length === 0) {
+    console.warn("Skipping incomplete conversation:", conversation);
+    return;
+  }
+
+  console.log("ALLLLORRRS "+JSON.stringify(conversation.otherUser));
+
+    console.log("ALLLLORRRS "+JSON.stringify(state.users));
+
+  const otherUserId = conversation.participants.find(id => id !== state.activeUserId);
+  const otherUser = state.users[otherUserId || ''];
+
+  state.conversations[conversation.id] = {
+    ...conversation,
+    otherUser: conversation.otherUser ?  conversation.otherUser : 'Unknown User',
+  };
+},
+
     setMessages: (state, action: PayloadAction<{ conversationId: string; messages: Message[]; hasMore: boolean }>) => {
       const { conversationId, messages, hasMore } = action.payload;
 
@@ -131,11 +160,48 @@ export const {
 
 export { messagingSelectors };
 
-export const startConversation = (senderUsername: string, receiverUsername: string): AppThunk => async dispatch => {
+export const startConversation = (senderUsername: string, receiverUsername: string): AppThunk => async (dispatch, getState) => {
   try {
     const conversationId = await apiStartConversation(senderUsername, receiverUsername);
-    dispatch(setActiveConversation(conversationId));
+
+    console.log("Inside startConversation with conversationId: " + conversationId);
+
+    // Retrieve receiver user details from Redux state to get the user ID
+    /*
+    const state = getState();
+    const receiverUser = Object.values(state.messaging.users).find(user => user.username === receiverUsername);
+
+    if (!receiverUser) {
+      console.error('Receiver user not found in state.');
+      return;
+    }
+*/
+    // Fully populate the new conversation
+    console.log("dans startconversation"+JSON.stringify({
+                                                              id: conversationId,
+                                                              participants: [senderUsername, receiverUsername],
+                                                              messages: [],
+                                                              hasMore: true,
+                                                              otherUser: receiverUsername,
+                                                            }));
+
+    const newConversation: Conversation = {
+      id: conversationId,
+      participants: [senderUsername, receiverUsername],
+      messages: [],
+      hasMore: true,
+      otherUser: receiverUsername,
+    };
+
+    // Dispatch addConversation to update Redux state
+    dispatch(addConversation(newConversation));
+
+    // Set the active conversation
+    dispatch(setActiveConversation(newConversation));
+
+    // Optionally, pre-fetch messages for the new conversation
     dispatch(fetchMessages(conversationId, 0, 20));
+
     return conversationId;
   } catch (error) {
     console.error('Error starting conversation:', error);
@@ -222,12 +288,7 @@ export const fetchMessages = (conversationId: string, offset: number, limit: num
 export const fetchAllConversations = (username: string): AppThunk => async dispatch => {
   try {
 
-
-      console.log("inside fetchAllConversations");
     const response = await gAC(username);
-
-
-     console.log("inside fetchAllConversations"+ JSON.stringify(response));
 
     const conversations: Conversation[] = response.data;
 
