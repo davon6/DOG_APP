@@ -1,8 +1,26 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, FlatList, ActivityIndicator, Alert } from 'react-native';
+import React, { useEffect, useState, useMemo, useRef  } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  FlatList,
+  ActivityIndicator,
+  Alert,
+} from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { useSelector, useDispatch } from 'react-redux';
-import { messagingSelectors, sendMessage, fetchMessages, startConversation } from '@/redux/slices/messagingSlice';
+import {
+  messagingSelectors,
+  sendMessage,
+  fetchMessages,
+  startConversation,
+} from '@/redux/slices/messagingSlice';
+//msgSliceTest
+
+import { selectMessagesForConversation, selectHasMoreForConversation } from '@/redux/selectorsTest';
+
 
 interface MessagePopupProps {
   conversationId?: string; // Optional for new chat mode
@@ -11,60 +29,95 @@ interface MessagePopupProps {
   onClose: () => void;
 }
 
-const MessagePopup: React.FC<MessagePopupProps> = ({ conversationId, senderUsername, receiverUsername, onClose }) => {
+const MessagePopup: React.FC<MessagePopupProps> = ({
+  conversationId,
+  senderUsername,
+  receiverUsername,
+  onClose,
+}) => {
   const [messageText, setMessageText] = useState('');
   const [loadingMore, setLoadingMore] = useState(false);
   const [newReceiverUsername, setNewReceiverUsername] = useState(receiverUsername || '');
-  const [newChatMode, setNewChatMode] = useState(!conversationId); // Set to true if no conversationId
+  const [newChatMode, setNewChatMode] = useState(!conversationId);
   const dispatch = useDispatch();
 
-  const messages = useSelector(state => messagingSelectors.selectMessagesForConversation(conversationId || '')(state) || []);
-  const hasMore = useSelector(state => messagingSelectors.selectHasMoreForConversation(state, conversationId || ''));
+   const flatListRef = useRef<FlatList>(null);
 
-
-const sortedMessages = React.useMemo(() => {
-  return messages.slice().sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  // Use normalized selector for messages
+const messagesSelector = useMemo(() => selectMessagesForConversation(conversationId), [conversationId]);
+const messages = useSelector(messagesSelector);
+/*
+useEffect(() => {
+  console.log('Messages:', messages);
 }, [messages]);
+
+*/
+const hasMore = useSelector((state) =>
+  conversationId
+    ? selectHasMoreForConversation(conversationId)(state)
+    : false
+);
+/*
+useEffect(() => {
+  console.log('Has More:', hasMore);
+}, [hasMore]);
+
+*/
+  // Sort messages by timestamp
+  const sortedMessages = React.useMemo(
+    () => messages.slice().sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)),
+    [messages]
+  );
+
+  // Fetch messages when component mounts or conversationId changes
+  /*
   useEffect(() => {
     if (conversationId && messages.length === 0) {
       dispatch(fetchMessages(conversationId, 0, 20));
     }
   }, [conversationId, dispatch, messages.length]);
+  */
 
   const handleSendMessage = async () => {
     if (messageText.trim() === '') return;
+
     try {
       if (newChatMode) {
-        // Start a new conversation if in new chat mode
+        // Start a new conversation
         const newConversationId = await dispatch(startConversation(senderUsername, newReceiverUsername));
         if (newConversationId) {
-          setNewChatMode(false); // Switch to conversation view mode
-          setNewReceiverUsername(''); // Clear receiver input
+          setNewChatMode(false);
+          setNewReceiverUsername('');
         }
       }
-      // Send message in the current conversation
+      // Send a message in the current conversation
       await dispatch(sendMessage(conversationId || '', senderUsername, messageText));
       setMessageText('');
+
+       setTimeout(() => {
+            flatListRef.current?.scrollToOffset({
+              offset: 0, // Scroll to the top of the data (visually the bottom for inverted lists)
+              animated: true,
+            });
+          }, 100);
     } catch (error) {
-      console.error("Error sending message:", error);
-      Alert.alert("Failed to send message");
+      console.error('Error sending message:', error);
+      Alert.alert('Failed to send message');
     }
   };
-
-  const handleLoadMore = async () => {
-    if (hasMore && !loadingMore) {
-      setLoadingMore(true);
-      try {
-        await dispatch(fetchMessages(conversationId || '', messages.length, 20));
-      } catch (error) {
-        console.error("Error loading more messages:", error);
-        Alert.alert("Failed to load more messages");
-      } finally {
-        setLoadingMore(false);
-      }
+const handleLoadMore = async () => {
+  if (hasMore && !loadingMore) {
+    setLoadingMore(true);
+    try {
+      await dispatch(fetchMessages(conversationId || '', messages.length, 20));
+    } catch (error) {
+      console.error('Error loading more messages:', error);
+      Alert.alert('Failed to load more messages');
+    } finally {
+      setLoadingMore(false);
     }
-  };
-
+ }
+};
   const MessageItem = React.memo(({ item, isOwnMessage }) => (
     <View style={[styles.messageContainer, isOwnMessage ? styles.ownMessage : styles.otherMessage]}>
       <Text style={styles.messageText}>{item.text}</Text>
@@ -103,6 +156,7 @@ const sortedMessages = React.useMemo(() => {
         </View>
       ) : (
         <FlatList
+        ref={flatListRef}
           data={sortedMessages}
           keyExtractor={(item) => item.id.toString()}
           renderItem={({ item }) => (
@@ -135,7 +189,6 @@ const sortedMessages = React.useMemo(() => {
     </View>
   );
 };
-
 const styles = StyleSheet.create({
   popupContainer: {
     position: 'absolute',

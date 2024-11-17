@@ -65,7 +65,7 @@ const messagingSlice = createSlice({
     addConversation: (state, action: PayloadAction<Conversation>) => {
       state.conversations[action.payload.id] = action.payload;
     },*/
-
+/*
 addConversation: (state, action: PayloadAction<Conversation>) => {
   const conversation = action.payload;
 
@@ -88,7 +88,41 @@ addConversation: (state, action: PayloadAction<Conversation>) => {
     ...conversation,
     otherUser: conversation.otherUser ?  conversation.otherUser : 'Unknown User',
   };
+},*/
+
+addConversation: (state, action: PayloadAction<Conversation>) => {
+  const conversation = action.payload;
+
+  console.log("addConversation payload: ", JSON.stringify(conversation));
+
+  // Log if conversation has missing participants to help debugging
+  if (!conversation.participants || conversation.participants.length === 0) {
+    console.warn("Skipping incomplete conversation:", conversation);
+    return;
+  }
+
+  console.log("Participants: ", JSON.stringify(conversation.participants));
+  console.log("Current users: ", JSON.stringify(state.users));
+
+  // Find the ID of the other participant (user who is not the active user)
+  const otherUserId = conversation.participants.find(id => id !== state.activeUserId);
+  const otherUser = otherUserId ? state.users[otherUserId] : null;
+
+  // Check if the conversation already exists
+  const existingConv = state.conversations[conversation.id];
+
+  // Only update if there is no existing conversation
+  if (!existingConv) {
+    state.conversations[conversation.id] = {
+      ...conversation,
+      otherUser: conversation.otherUser || (otherUser ? otherUser.username : 'Unknown User'),
+    };
+  } else {
+    // Update otherUser field if the conversation already exists and needs updating
+    existingConv.otherUser = existingConv.otherUser || (otherUser ? otherUser.username : 'Unknown User');
+  }
 },
+
 
     setMessages: (state, action: PayloadAction<{ conversationId: string; messages: Message[]; hasMore: boolean }>) => {
       const { conversationId, messages, hasMore } = action.payload;
@@ -277,6 +311,9 @@ export const fetchMessages = (conversationId: string, offset: number, limit: num
   try {
     const response = await apiFetchMessages(conversationId, offset, limit);
     const { messages, hasMore } = response.data;
+
+
+    console.log("checking hasMore in fetchMessage-->"+JSON.stringify(response.data));
 
     dispatch(setMessages({ conversationId, messages, hasMore: hasMore ?? true }));
   } catch (error) {

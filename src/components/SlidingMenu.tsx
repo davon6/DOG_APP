@@ -7,6 +7,8 @@ import { RootState } from '@/redux/store';
 import { UserContext } from '@/services/Context';
 import MessagePopup from './MessagePopup';
 
+import { selectConversationsList } from '@/redux/selectors';
+
 const { width } = Dimensions.get('window');
 
 interface SlidingMenuProps {
@@ -44,7 +46,9 @@ const [showNewChatPopup, setShowNewChatPopup] = useState(false);
 
   // Get conversations as an object and users as an object
   //const conversations = useSelector((state: RootState) => state.messaging.conversations);
-  const conversations = useSelector((state) => Object.values(state.messaging.conversations));
+  //const conversations = useSelector((state) => Object.values(state.messaging.conversations));
+
+const conversations = useSelector(selectConversationsList);
 
   const users = useSelector((state: RootState) => state.messaging.users);
   const messages = useSelector((state: RootState) => state.messaging.messages);
@@ -78,12 +82,12 @@ console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
   useEffect(() => {
     closePopup();
   }, [activeMenu]);
-
+/*
   useEffect(() => {
     console.log(conversations); // Verify that each conversation has `otherUser` populated correctly here
   }, [conversations]);
 
-
+*/
   const initiateConversation = async (username: string) => {
     if (!showPopup) {
       const conversationId = await dispatch(startConversation(user.userName, username));
@@ -130,7 +134,7 @@ console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
           <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 192, 203, 0.8)' }]}>
             <Text style={styles.menuTitle}>User Profile</Text>
             <Text style={styles.menuText}>Username: {user?.userName ?? 'JohnDoe'}</Text>
-																										
+
             <Text style={styles.menuText}>Doggy Name: {user?.dogName ?? 'Max'}</Text>
             <Text style={styles.menuText}>Doggy Color: {user?.dogColor ?? 'Brown'}</Text>
             <Text style={styles.menuText}>Doggy Weight: {user?.dogWeight ?? '15 kg'}</Text>
@@ -154,7 +158,7 @@ console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
                   // Get the participant user ID(s) from the conversation
                   const participantIds = conversation.participants.filter((id) => id !== user.id);
 
-console.log("feeling lost "+ JSON.stringify(conversation));
+//console.log("feeling lost "+ JSON.stringify(conversation));
 
                   // Get the participant's name from the users state using the ID
                   const participantName = conversation.otherUser || 'Unknown User';
