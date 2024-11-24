@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { navigate } from '@/navigators/navigationHelper';
 
 const api = axios.create({
-  baseURL: 'http://172.20.10.8:3000',
+  baseURL: 'http://192.168.30.1:3000',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -80,7 +80,12 @@ export const startConversation = async (senderUsername: string, receiverUsername
 // Send a message in a conversation
 export const sendMessage = async (conversationId: string, senderUsername: string, text: string) => {
   try {
-    await api.post('/api/conversations/send-message', { conversationId, senderUsername, text });
+    const response = await api.post('/api/conversations/send-message', { conversationId, senderUsername, text });
+
+   /* console.log("a basic check " + JSON.stringify(response));*/
+
+    return response.data.messageID;
+
   } catch (error) {
     console.error('Error sending message:', error);
     throw error;
@@ -109,6 +114,7 @@ export const fetchMessages = async (conversationId: string, offset: number, limi
     const response = await api.get(`/api/conversations/${conversationId}/messages`, {
       params: { offset, limit },
     });
+
     return response; // { messages: Message[], hasMore: boolean }
   } catch (error) {
     console.error('Error fetching messages:', error);
@@ -119,7 +125,7 @@ export const fetchMessages = async (conversationId: string, offset: number, limi
 
 export const getAllConversations = async (username) => {
 
-console.log("bah alors ? "+username );
+
 
     //this function requires to passs up a token
   try {
@@ -130,11 +136,95 @@ console.log("bah alors ? "+username );
            params: { username },
     });
 
+
+    //console.log("bah alors ? "+JSON.stringify(response.data) );
+
     return response; // { messages: Message[], hasMore: boolean }
+
+
+
+ //   return { messages: Message[], hasMore !== undefined ? hasMore : true
   } catch (error) {
     console.error('Error fetching messages:', error);
     throw error;
   }
 };
+
+// Friends API
+
+// Get all friends for a user
+export const getFriends = async (userId: number) => {
+  try {
+    const response = await api.get(`/api/friends`, {
+      params: { userId },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching friends:', error);
+    throw error;
+  }
+};
+
+// Send a friend request
+export const sendFriendRequest = async (userId: number, friendId: number) => {
+  try {
+    const response = await api.post(`/api/friends/request`, { userId, friendId });
+    return response.data;
+  } catch (error) {
+    console.error('Error sending friend request:', error);
+    throw error;
+  }
+};
+
+// Accept a friend request
+export const acceptFriendRequest = async (userId: number, friendId: number) => {
+  try {
+    const response = await api.put(`/api/friends/accept`, { userId, friendId });
+    return response.data;
+  } catch (error) {
+    console.error('Error accepting friend request:', error);
+    throw error;
+  }
+};
+
+// Remove a friend
+export const removeFriend = async (userId: number, friendId: number) => {
+  try {
+    const response = await api.delete(`/api/friends/remove`, {
+      data: { userId, friendId },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error removing friend:', error);
+    throw error;
+  }
+};
+
+// Fetch friend requests (pending requests for the current user)
+export const getFriendRequests = async (userId: number) => {
+  try {
+    const response = await api.get(`/api/friends/requests`, {
+      params: { userId },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching friend requests:', error);
+    throw error;
+  }
+};
+
+// Fetch mutual friends between two users
+export const getMutualFriends = async (userId: number, otherUserId: number) => {
+  try {
+    const response = await api.get(`/api/friends/mutual`, {
+      params: { userId, otherUserId },
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching mutual friends:', error);
+    throw error;
+  }
+};
+
 
 export default api;

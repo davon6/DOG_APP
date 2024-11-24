@@ -313,7 +313,7 @@ export const fetchMessages = (conversationId: string, offset: number, limit: num
     const { messages, hasMore } = response.data;
 
 
-    console.log("checking hasMore in fetchMessage-->"+JSON.stringify(response.data));
+    //console.log("checking hasMore in fetchMessage-->"+JSON.stringify(response.data));
 
     dispatch(setMessages({ conversationId, messages, hasMore: hasMore ?? true }));
   } catch (error) {

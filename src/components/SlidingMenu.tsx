@@ -6,6 +6,8 @@ import { setActiveConversation, startConversation } from '@/redux/slices/messagi
 import { RootState } from '@/redux/store';
 import { UserContext } from '@/services/Context';
 import MessagePopup from './MessagePopup';
+import NewDoggiePopup from './NewDoggiePopup';
+
 
 import { selectConversationsList } from '@/redux/selectors';
 
@@ -52,6 +54,15 @@ const conversations = useSelector(selectConversationsList);
 
   const users = useSelector((state: RootState) => state.messaging.users);
   const messages = useSelector((state: RootState) => state.messaging.messages);
+
+
+  const [showDoggiePopup, setShowDoggiePopup] = useState(false);
+
+  const handleSelectDoggie = (doggieName: string) => {
+    console.log(`Selected doggie: ${doggieName}`);
+    setShowDoggiePopup(false);
+  };
+
 
   const openPopup = (conversationId?: string, receiverUsername?: string) => {
 
@@ -197,11 +208,17 @@ console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
         return (
           <View style={[styles.menuContent, { backgroundColor: 'rgba(144, 238, 144, 0.8)' }]}>
             <Text style={styles.menuTitle}>Search Options</Text>
-            <Text style={styles.menuText}>New doggie friends</Text>
-            <Text style={styles.menuText}>Lost Items</Text>
-            <Text style={styles.menuText}>Event Creation/Sharing</Text>
-            <Text style={styles.menuText}>Forum</Text>
-            <Text style={styles.menuText}>Business</Text>
+          <TouchableOpacity
+                   style={styles.startChatButton}
+                   onPress={() => setShowDoggiePopup(true)}
+                 >
+                   <Text style={styles.buttonText}>New Doggie Friends</Text>
+                 </TouchableOpacity>
+                 <Text style={styles.menuText}>Lost Items</Text>
+                 <Text style={styles.menuText}>Event Creation/Sharing</Text>
+                 <Text style={styles.menuText}>Forum</Text>
+                 <Text style={styles.menuText}>Business</Text>
+
           </View>
         );
 
@@ -244,8 +261,18 @@ console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
            onSelectUser={(username) => initiateConversation(username)}
          />
        )}
+
+         {showDoggiePopup && (
+           <NewDoggiePopup
+             onClose={() => setShowDoggiePopup(false)}
+             onSelectDoggie={handleSelectDoggie}
+           />
+         )}
     </Animated.View>
   );
+
+
+
 };
 
 const styles = StyleSheet.create({
