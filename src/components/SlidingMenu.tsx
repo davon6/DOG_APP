@@ -266,6 +266,8 @@ console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
            <NewDoggiePopup
              onClose={() => setShowDoggiePopup(false)}
              onSelectDoggie={handleSelectDoggie}
+             userName={user.userName}
+
            />
          )}
     </Animated.View>

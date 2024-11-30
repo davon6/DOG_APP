@@ -105,6 +105,21 @@ export const fetchUsrs = async () => {
 };
 
 
+export const getFriendStatuses = async (username: string) => {
+
+
+    console.log("soooooo  !!!"+ username)
+
+  try {
+    const response = await api.post('/api/friends/status', { username });
+    return response.data;  // This is the list of friend statuses returned from the server
+  } catch (error) {
+    console.error('Error fetching friend statuses:', error);
+    throw error;  // Propagate the error for UI components to handle
+  }
+};
+
+
 // Fetch messages with pagination
 export const fetchMessages = async (conversationId: string, offset: number, limit: number) => {
 
@@ -166,9 +181,9 @@ export const getFriends = async (userId: number) => {
 };
 
 // Send a friend request
-export const sendFriendRequest = async (userId: number, friendId: number) => {
+export const sendFriendRequest = async (username: string, friendUsername: string) => {
   try {
-    const response = await api.post(`/api/friends/request`, { userId, friendId });
+    const response = await api.post(`/api/friends/request`, { username, friendUsername });
     return response.data;
   } catch (error) {
     console.error('Error sending friend request:', error);

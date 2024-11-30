@@ -118,12 +118,28 @@ const handleLoadMore = async () => {
     }
  }
 };
+
+/* has worked very well !!!! just a virtualised log
   const MessageItem = React.memo(({ item, isOwnMessage }) => (
     <View style={[styles.messageContainer, isOwnMessage ? styles.ownMessage : styles.otherMessage]}>
       <Text style={styles.messageText}>{item.text}</Text>
       <Text style={styles.timestampText}>{new Date(item.timestamp).toLocaleTimeString()}</Text>
     </View>
   ));
+  */
+
+  const MessageItem = React.memo(({ text, timestamp, isOwnMessage }) => (
+    <View
+      style={[
+        styles.messageContainer,
+        isOwnMessage ? styles.ownMessage : styles.otherMessage,
+      ]}
+    >
+      <Text style={styles.messageText}>{text}</Text>
+      <Text style={styles.timestampText}>{new Date(timestamp).toLocaleTimeString()}</Text>
+    </View>
+  ));
+
 
   const renderFooter = () => {
     if (!hasMore) return null;
@@ -159,9 +175,22 @@ const handleLoadMore = async () => {
         ref={flatListRef}
           data={sortedMessages}
           keyExtractor={(item) => item.id.toString()}
+
+          /* same works well !
           renderItem={({ item }) => (
             <MessageItem item={item} isOwnMessage={item.senderUsername === senderUsername} />
           )}
+          */
+           // When passing data:
+            renderItem={({ item }) => (
+              <MessageItem
+                text={item.text}
+                timestamp={item.timestamp}
+                isOwnMessage={item.senderUsername === senderUsername}
+              />
+            )}
+
+
           contentContainerStyle={styles.messagesContainer}
           inverted
           onEndReached={handleLoadMore}
@@ -169,8 +198,14 @@ const handleLoadMore = async () => {
           ListFooterComponent={renderFooter}
           initialNumToRender={10}
           maxToRenderPerBatch={5}
-          windowSize={10}
-          getItemLayout={(data, index) => ({ length: 60, offset: 60 * index, index })}
+        //  windowSize={10}
+          windowSize={15}
+       //   getItemLayout={(data, index) => ({ length: 60, offset: 60 * index, index })}
+       getItemLayout={(data, index) => ({
+         length: 80, // Adjust based on your `styles.messageContainer`
+         offset: 80 * index,
+         index,
+       })}
         />
       )}
 
