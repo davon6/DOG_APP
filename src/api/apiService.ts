@@ -241,5 +241,53 @@ export const getMutualFriends = async (userId: number, otherUserId: number) => {
   }
 };
 
+// NOTIFICATIONS API CALLS
+
+// Fetch all notifications for the logged-in user
+export const fetchNotificationsApi = async (username: string) => {
+  try {
+    console.log("Fetching notifications for username:", username);
+
+    // Send the username in the request body
+    const response = await api.post('/api/notifications/notifications', {
+      username,  // Passed in the body, not params
+    });
+
+    console.log("Fetched notifications:");
+    console.log(JSON.stringify(response.data));
+
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    throw error;  // Propagate the error to be handled in the component
+  }
+};
+
+
+
+
+// Mark a notification as read
+export const markNotificationAsReadApi = async (notificationId: number) => {
+  try {
+    const response = await api.patch(`/api/notifications/${notificationId}`, { isRead: true });
+    return response.data;
+  } catch (error) {
+    console.error('Error marking notification as read:', error);
+    throw error;
+  }
+};
+
+// Delete a notification
+export const deleteNotificationApi = async (notificationId: number) => {
+  try {
+    await api.delete(`/api/notifications/${notificationId}`);
+    return notificationId;
+  } catch (error) {
+    console.error('Error deleting notification:', error);
+    throw error;
+  }
+};
+
+
 
 export default api;

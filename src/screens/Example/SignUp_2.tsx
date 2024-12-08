@@ -29,6 +29,7 @@ const SignUp_2Screen: React.FC<SignUp_2ScreenProps> = ({ navigation }) => {
     }
 
 
+
     setLoading(true);
 
 
@@ -36,7 +37,9 @@ const SignUp_2Screen: React.FC<SignUp_2ScreenProps> = ({ navigation }) => {
     try {
 
 
-      const response = await axios.post('http://172.20.10.8:3000/api/users/signup', {
+console.log("await axios.post('http://172.20.10.8:3000/api/users/signup'")
+
+      const response = await axios.post('http://192.168.30.1:3000/api/users/signup', {
         username,
         email,
         password,
@@ -96,6 +99,9 @@ try {
         navigation.navigate('Example'); // Navigate after success
       }
     } catch (error) {
+
+        console.log("signup error "+ error);
+
       setError('Something went wrong, please try again.');
     } finally {
       setLoading(false);

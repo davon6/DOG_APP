@@ -5,6 +5,8 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { useExampleLogic } from '@/hooks/useExampleLogic';
 import MapComponent from '@/components/MapComponent';
 import SlidingMenu from '@/components/SlidingMenu';
+import NewsFeedMenu from '@/components/NewsFeedMenu';
+
 
 const { width } = Dimensions.get('window');
 
@@ -51,6 +53,8 @@ const App = () => {
 
   return (
     <View style={styles.container}>
+
+    {/*come on*/}
       <MapComponent location={location} users={users} />
 
       {loading && <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />}
@@ -70,7 +74,9 @@ const App = () => {
         </TouchableOpacity>
       </View>
 
-      <SlidingMenu activeMenu={activeMenu} menuAnim={menuAnim} closeMenu={closeMenu} />
+    <SlidingMenu activeMenu={activeMenu} menuAnim={menuAnim} closeMenu={closeMenu} />
+
+       <NewsFeedMenu />
     </View>
   );
 };

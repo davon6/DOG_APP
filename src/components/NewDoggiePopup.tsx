@@ -8,10 +8,10 @@ import {
   FlatList,
   Alert,
 } from 'react-native';
-import { UserContext } from '@/services/Context';
-
+import  Toast  from 'react-native-toast-message';
 import { getFriendStatuses as getUsersFriendshipStatus, sendFriendRequest} from '@/api/apiService';
-
+import { ToastContainer, toast } from '@/services/react-toastify';
+import { notifyFriendRequest, toastConfig } from "@/services/notification"
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 interface NewDoggiePopupProps {
@@ -26,6 +26,50 @@ const NewDoggiePopup: React.FC<NewDoggiePopupProps> = ({ onClose, onSelectDoggie
   const [friendStatuses, setFriendStatuses] = useState<any[]>([]);  // Store friend statuses
   const [error, setError] = useState<string | null>(null);  // Error state for API call
   const [loading, setLoading] = useState<boolean>(false);  // Load
+
+
+  const [notificationVisible, setNotificationVisible] = useState(true);
+
+  useEffect(() => {
+      notifyFriendRequest("JohnDoe");
+      /*
+    console.log("Notification shown!");
+
+    // Show the toast notification
+    Toast.show({
+      type: 'success',  // The type of toast (success, error, info, etc.)
+      text1: 'This is a test toast!',  // Main toast message
+      position: 'top',  // Position of the toast (top, bottom, etc.)
+      autoHide: false,  // Prevent auto hiding until the user releases
+      visibilityTime: 0,  // Disable auto hide time for manual control
+      onPress: handleClick,  // Hide the toast on press
+    });
+
+
+*/
+
+  }, []);
+
+  // Function that starts when the user presses the toast
+  const handlePressIn = () => {
+    setHoldStart(Date.now()); // Track the time when the press started
+  };
+
+  // Function that runs when the user releases the toast
+  const handlePressOut = () => {
+    const pressDuration = Date.now() - (holdStart || 0);
+
+    if (pressDuration >= holdDuration) {
+      // If the hold duration is longer than the threshold, hide the toast
+      setNotificationVisible(false);
+      Toast.hide();
+    }
+  };
+
+  const handleClick = () => {
+    setNotificationVisible(false); // You can hide the notification if you want to trigger other actions
+    Toast.hide();  // Hide toast if clicked
+  };
 
 
  useEffect(() => {
@@ -107,60 +151,79 @@ const NewDoggiePopup: React.FC<NewDoggiePopupProps> = ({ onClose, onSelectDoggie
         value={doggieSearch}
         onChangeText={setDoggieSearch} // Updates search state
       />
-      <FlatList
-        data={filteredDoggies}
-        keyExtractor={(item) => item.username}
-        renderItem={({ item }) => (
-          <View style={styles.listItem}>
-            <TouchableOpacity
-              style={styles.userButton}
-              onPress={() => onSelectDoggie(item.username)}
-            >
-              <Text style={styles.buttonText}>{item.dog_name} via {item.username} </Text>
-            </TouchableOpacity>
-         <TouchableOpacity
-           style={styles.iconButton}
-           onPress={() => {
-             if (item.relationship === 'none') {
-               sendFriendRequest(userName, item.username)
-                 .then(() => {
-                   Alert.alert('Friend Request', `Friend request sent to ${item.username}!`);
-                   // Update state to change the relationship to 'pending'
-                   setFriendStatuses((prevStatuses) =>
-                     prevStatuses.map((status) =>
-                       status.username === item.username ? { ...status, relationship: 'pending' } : status
-                     )
-                   );
-                 })
-                 .catch((err) => {
-                   console.error('Error sending friend request:', err);
-                   Alert.alert('Error', 'Failed to send friend request.');
-                 });
-             }
-           }}
-         >
-           <Icon
-             name={
-               item.relationship === 'none'
-                 ? 'plus'
-                 : item.relationship === 'pending'
-                 ? 'clock-o'
-                 : 'check'
-             }
-             size={20}
-             color={
-               item.relationship === 'none'
-                 ? '#333'
-                 : item.relationship === 'pending'
-                 ? '#FFA500'
-                 : '#32CD32'
-             }
-           />
-         </TouchableOpacity>
-          </View>
-        )}
-        contentContainerStyle={styles.doggieList}
-      />
+     <FlatList
+       data={filteredDoggies}
+       keyExtractor={(item) => item.username}
+       renderItem={({ item }) => (
+         <View style={styles.listItem}>
+           <TouchableOpacity
+             style={styles.userButton}
+             onPress={() => onSelectDoggie(item.username)}
+           >
+             <Text style={styles.buttonText}>{item.dog_name} via {item.username}</Text>
+           </TouchableOpacity>
+           <TouchableOpacity
+             style={styles.iconButton}
+             onPress={() => {
+               if (item.relationship === 'none') {
+                 sendFriendRequest(userName, item.username)
+                   .then(() => {
+                     Alert.alert('Friend Request', `Friend request sent to ${item.username}!`);
+                     setFriendStatuses((prevStatuses) =>
+                       prevStatuses.map((status) =>
+                         status.username === item.username
+                           ? { ...status, relationship: 'sent' }
+                           : status
+                       )
+                     );
+                   })
+                   .catch((err) => {
+                     console.error('Error sending friend request:', err);
+                     Alert.alert('Error', 'Failed to send friend request.');
+                   });
+               }
+             }}
+           >
+             <Icon
+               name={
+                 item.relationship === 'none'
+                   ? 'plus'
+                   : item.relationship === 'received'
+                   ? 'clock-o'
+                   : item.relationship === 'sent'
+                   ? 'paper-plane' // New icon for sent friend requests
+                   : 'check'
+               }
+               size={20}
+               color={
+                 item.relationship === 'none'
+                   ? '#333'
+                   : item.relationship === 'received'
+                   ? '#FFA500'
+                   : item.relationship === 'sent'
+                   ? '#1E90FF'
+                   : '#32CD32'
+               }
+             />
+           </TouchableOpacity>
+         </View>
+       )}
+       contentContainerStyle={styles.doggieList}
+     />
+
+    </View>
+
+  );
+
+
+
+
+return (
+    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+      <Button title="Send Friend Request Notification" onPress={handleSendNotification} />
+
+      {/* Toast container to render notifications */}
+      <Toast config={toastConfig} />
     </View>
   );
 };

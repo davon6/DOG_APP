@@ -125,6 +125,7 @@ console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
     onPanResponderRelease: (_, gestureState) => {
       if (gestureState.dx < -width * 0.02) {
         closeMenu();
+         setShowDoggiePopup(false);
       } else {
         Animated.timing(menuAnim, {
           toValue: 0,

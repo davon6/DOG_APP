@@ -5,7 +5,8 @@ import { View, TextInput, Button, Text, StyleSheet } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserContext } from '@/services/Context';
 import { useDispatch } from 'react-redux';
-import { fetchAllConversations, fetchUsers } from '@/redux/slices/messagingSlice'
+import { fetchAllConversations, fetchUsers } from '@/redux/slices/messagingSlice';
+import { fetchNotifications } from '@/redux/slices/notificationsSlice';  // Import the fetchNotifications action
 
 interface SignInScreenProps {
   navigation: any; // Adjust type as necessary based on your navigation setup
@@ -20,16 +21,16 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
 
   const handleSignIn = async () => {
     try {
-      const response = await axios.post('http://172.20.10.8:3000/api/users/signin', { username, password });
+      const response = await axios.post('http://192.168.30.1:3000/api/users/signin', { username, password });
 
       try {
         await AsyncStorage.setItem('userToken', response.data.token);
         await AsyncStorage.setItem('refreshToken', response.data.refreshToken);
         await AsyncStorage.setItem('user_info', JSON.stringify(response.data.dogInfo));
 
-        console.log('Tokens stored successfully'); // Log success
+        console.log('Tokens stored successfully');
       } catch (storageError) {
-        console.error('Failed to store the token:', storageError); // Log the error
+        console.error('Failed to store the token:', storageError);
       }
 
       const finalUser = {
@@ -39,11 +40,34 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
 
       updateUser(finalUser);
 
-
-
-        dispatch(fetchUsers());
-      // Fetch all conversations after sign-in
+      // Dispatch the actions after successful sign-in
+      dispatch(fetchUsers());
       dispatch(fetchAllConversations(username));
+
+/*
+ try {
+
+
+ const response2 = await axios.post('http://192.168.30.1:3000/api/notifications', {
+      username // Passed in the body, not params
+    });
+
+    console.log("Fetched notifications:");
+    console.log(JSON.stringify(response.data));
+
+    //response2.data;
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+   // throw error;  // Propagate the error to be handled in the component
+  }
+
+*/
+
+
+
+      // Fetch notifications after sign-in
+      dispatch(fetchNotifications(username));  // Fetch notifications for the user
+
       // Navigate to the home screen or wherever you want to go
       navigation.navigate('Example'); // Adjust this based on your navigation structure
     } catch (error) {
