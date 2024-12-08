@@ -1,5 +1,6 @@
 {
   "friend_request": "{demanding_user} has sent you a friend request.",
   "friend_accepted": "You have accepted {demanding_user} friend request.",
+  "friend_declined": "You have declined {demanding_user} friend request.",
   "new_message": "You received a new message from {sending_user}."
 }

@@ -6,6 +6,23 @@ import { fetchNotificationsApi, markNotificationAsReadApi, deleteNotificationApi
 console.log("the beginning!!!!");
 // Async Thunks
 
+// Define Notification type
+interface Notification {
+  id: number;
+  type: string;
+  relatedUsername: string;
+  extraData: any;
+  isRead: boolean;
+  createdAt: string;
+}
+
+// Define the shape of the state
+interface NotificationsState {
+  list: Notification[];
+  status: 'idle' | 'loading' | 'succeeded' | 'failed';
+  error: string | null;
+}
+
 // Fetch Notifications from the server
 export const fetchNotifications = createAsyncThunk(
   'notifications/fetch',
@@ -68,8 +85,10 @@ const notificationSlice = createSlice({
         state.status = 'loading';
       })
       .addCase(fetchNotifications.fulfilled, (state, action) => {
+            console.log("Fetched Notifications:", action.payload)
         state.status = 'succeeded';
-        state.notifications = action.payload;
+       // state.notifications = action.payload;
+        state.list = action.payload;
       })
       .addCase(fetchNotifications.rejected, (state, action) => {
         state.status = 'failed';
