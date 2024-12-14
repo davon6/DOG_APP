@@ -43,28 +43,6 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       // Dispatch the actions after successful sign-in
       dispatch(fetchUsers());
       dispatch(fetchAllConversations(username));
-
-/*
- try {
-
-
- const response2 = await axios.post('http://192.168.30.1:3000/api/notifications', {
-      username // Passed in the body, not params
-    });
-
-    console.log("Fetched notifications:");
-    console.log(JSON.stringify(response.data));
-
-    //response2.data;
-  } catch (error) {
-    console.error('Error fetching notifications:', error);
-   // throw error;  // Propagate the error to be handled in the component
-  }
-
-*/
-
-
-
       // Fetch notifications after sign-in
       dispatch(fetchNotifications(username));  // Fetch notifications for the user
 

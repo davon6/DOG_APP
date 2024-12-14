@@ -10,8 +10,6 @@ import {
 } from 'react-native';
 import  Toast  from 'react-native-toast-message';
 import { getFriendStatuses as getUsersFriendshipStatus, sendFriendRequest} from '@/api/apiService';
-import { ToastContainer, toast } from '@/services/react-toastify';
-import { notifyFriendRequest, toastConfig } from "@/services/notification"
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 interface NewDoggiePopupProps {
@@ -26,29 +24,8 @@ const NewDoggiePopup: React.FC<NewDoggiePopupProps> = ({ onClose, onSelectDoggie
   const [friendStatuses, setFriendStatuses] = useState<any[]>([]);  // Store friend statuses
   const [error, setError] = useState<string | null>(null);  // Error state for API call
   const [loading, setLoading] = useState<boolean>(false);  // Load
-
-
   const [notificationVisible, setNotificationVisible] = useState(true);
 
-  useEffect(() => {
-      notifyFriendRequest("JohnDoe");
-      /*
-    console.log("Notification shown!");
-
-    // Show the toast notification
-    Toast.show({
-      type: 'success',  // The type of toast (success, error, info, etc.)
-      text1: 'This is a test toast!',  // Main toast message
-      position: 'top',  // Position of the toast (top, bottom, etc.)
-      autoHide: false,  // Prevent auto hiding until the user releases
-      visibilityTime: 0,  // Disable auto hide time for manual control
-      onPress: handleClick,  // Hide the toast on press
-    });
-
-
-*/
-
-  }, []);
 
   // Function that starts when the user presses the toast
   const handlePressIn = () => {

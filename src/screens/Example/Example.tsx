@@ -7,6 +7,8 @@ import MapComponent from '@/components/MapComponent';
 import SlidingMenu from '@/components/SlidingMenu';
 import NewsFeedMenu from '@/components/NewsFeedMenu';
 import { UserContext } from '@/services/Context';
+import { ToastContainer, toast } from '@/services/react-toastify';
+import { notifyFriendRequest, toastConfig } from "@/services/notification"
 
 
 const { width } = Dimensions.get('window');
@@ -19,6 +21,11 @@ const App = () => {
     const { user } = useContext(UserContext);
 
   const { users, loading } = useExampleLogic();
+/*Kill for now
+    useEffect(() => {
+        notifyFriendRequest("JohnDoe");
+
+    }, []);*/
 
   useEffect(() => {
     const watchId = Geolocation.watchPosition(
