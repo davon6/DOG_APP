@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
 import notificationTemplates from './notifications.json';
 import { useSelector } from 'react-redux';
@@ -6,30 +6,32 @@ import { RootState } from '@/redux/store';  // Import RootState
 
 const { width } = Dimensions.get('window');
 
-const NewsFeedMenu = () => {
+const NewsFeedMenu = ({ isOpen, toggleMenu }) => {
   const [menuAnim] = useState(new Animated.Value(width));
-  const [isOpen, setIsOpen] = useState(false);
+  //const [isOpen, setIsOpen] = useState(false);
 
   const MENU_WIDTH = 300; // Define the open menu width
 
   const notifications = useSelector((state: RootState) => state.notifications.list);  // Fetch notifications from the store
   console.log("Notifications from Redux store:", notifications);
 
-  const toggleMenu = () => {
-    if (isOpen) {
-      Animated.timing(menuAnim, {
-        toValue: width,
-        duration: 300,
-        useNativeDriver: true,
-      }).start(() => setIsOpen(false));
-    } else {
-      Animated.timing(menuAnim, {
-        toValue: width - MENU_WIDTH,
-        duration: 300,
-        useNativeDriver: true,
-      }).start(() => setIsOpen(true));
-    }
-  };
+   useEffect(() => {
+      if (isOpen) {
+        Animated.timing(menuAnim, {
+          toValue: width - MENU_WIDTH,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+      } else {
+        Animated.timing(menuAnim, {
+          toValue: width,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+      }
+    }, [isOpen]);
+
+
 
   // Function to handle the response (accept or decline) for friend request notifications
   const handleFriendRequestResponse = (notificationId: string, response: 'accept' | 'decline') => {

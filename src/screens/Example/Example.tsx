@@ -14,6 +14,7 @@ const App = () => {
   const [location, setLocation] = useState(null);
   const [activeMenu, setActiveMenu] = useState(null);
   const [menuAnim] = useState(new Animated.Value(-width));
+   const [newsFeedMenuOpen, setNewsFeedMenuOpen] = useState(false);
 
   const { users, loading } = useExampleLogic();
 
@@ -34,6 +35,11 @@ const App = () => {
     return () => Geolocation.clearWatch(watchId);
   }, []);
 
+   const toggleNewsFeedMenu = () => {
+      setNewsFeedMenuOpen(!newsFeedMenuOpen);
+    };
+
+
   const handleIconPress = (menuType) => {
     setActiveMenu(menuType);
     Animated.timing(menuAnim, {
@@ -41,6 +47,11 @@ const App = () => {
       duration: 300,
       useNativeDriver: true,
     }).start();
+
+ // Close NewsFeedMenu if open
+    if (newsFeedMenuOpen) {
+      setNewsFeedMenuOpen(false);
+    }
   };
 
   const closeMenu = () => {
@@ -76,7 +87,7 @@ const App = () => {
 
     <SlidingMenu activeMenu={activeMenu} menuAnim={menuAnim} closeMenu={closeMenu} />
 
-       <NewsFeedMenu />
+       <NewsFeedMenu isOpen={newsFeedMenuOpen} toggleMenu={toggleNewsFeedMenu} />
     </View>
   );
 };
