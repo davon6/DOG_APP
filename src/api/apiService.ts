@@ -191,16 +191,30 @@ export const sendFriendRequest = async (username: string, friendUsername: string
   }
 };
 
-// Accept a friend request
-export const acceptFriendRequest = async (userId: number, friendId: number) => {
+export const acceptFriendRequest = async (username: string, relatedUsername: string, notificationId: number) => {
   try {
-    const response = await api.put(`/api/friends/accept`, { userId, friendId });
+    const response = await api.put(`/api/friends/accept`, { username, relatedUsername, notificationId });
     return response.data;
   } catch (error) {
     console.error('Error accepting friend request:', error);
     throw error;
   }
 };
+
+export const deleteFriendRequest = async (username: string, relatedUsername: string, notificationId: number) => {
+  try {
+
+      console.log("delete friend request", username, relatedUsername);
+
+    const response = await api.post(`/api/friends/delete`, { username, relatedUsername, notificationId });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting friend request:', error);
+    throw error;
+  }
+};
+
+
 
 // Remove a friend
 export const removeFriend = async (userId: number, friendId: number) => {

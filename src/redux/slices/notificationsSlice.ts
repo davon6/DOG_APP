@@ -1,6 +1,6 @@
 // store/notificationsSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { fetchNotificationsApi, markNotificationAsReadApi, deleteNotificationApi } from '@/api/apiService'; // Import API methods
+import { deleteFriendRequest, acceptFriendRequest,fetchNotificationsApi, markNotificationAsReadApi, deleteNotificationApi } from '@/api/apiService'; // Import API methods
 
 // Define Notification type
 interface Notification {
@@ -73,17 +73,32 @@ export const deleteNotification = createAsyncThunk(
 export const updateNotificationResponse = createAsyncThunk(
   'notifications/updateResponse',
   async (
-    { notificationId, response, newText }: { notificationId: number; response: 'accept' | 'decline'; newText: string },
-    { getState, rejectWithValue }
+    { notificationId, response, newText, username, relatedUsername }:
+    { notificationId: number; response: 'accept' | 'decline'; newText: string; userId: number; friendId: number },
+    { rejectWithValue }
   ) => {
     try {
-      // You can integrate API logic here if needed
-      return { notificationId, response, newText };
+
+      if (response === 'accept') {
+        // Call the acceptFriendRequest API
+        await acceptFriendRequest(username, relatedUsername, notificationId);
+      } else if (response === 'decline') {
+        // Call the deleteFriendRequest API (to allow sending new friend requests later)
+        await deleteFriendRequest(username, relatedUsername, notificationId);
+      }
+
+      // Mark the notification as read
+      //await markNotificationAsRead(notificationId);
+
+      // Return updated notification data for Redux
+      return { notificationId, response, newText, isRead: true };
     } catch (error) {
+      console.error('Error updating notification response:', error);
       return rejectWithValue('Failed to update notification response');
     }
   }
 );
+
 
 // Redux Slice
 const notificationSlice = createSlice({

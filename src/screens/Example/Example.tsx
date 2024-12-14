@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { View, StyleSheet, TouchableOpacity, Animated, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -6,6 +6,7 @@ import { useExampleLogic } from '@/hooks/useExampleLogic';
 import MapComponent from '@/components/MapComponent';
 import SlidingMenu from '@/components/SlidingMenu';
 import NewsFeedMenu from '@/components/NewsFeedMenu';
+import { UserContext } from '@/services/Context';
 
 
 const { width } = Dimensions.get('window');
@@ -15,6 +16,7 @@ const App = () => {
   const [activeMenu, setActiveMenu] = useState(null);
   const [menuAnim] = useState(new Animated.Value(-width));
    const [newsFeedMenuOpen, setNewsFeedMenuOpen] = useState(false);
+    const { user } = useContext(UserContext);
 
   const { users, loading } = useExampleLogic();
 
@@ -87,7 +89,8 @@ const App = () => {
 
     <SlidingMenu activeMenu={activeMenu} menuAnim={menuAnim} closeMenu={closeMenu} />
 
-       <NewsFeedMenu isOpen={newsFeedMenuOpen} toggleMenu={toggleNewsFeedMenu} />
+       <NewsFeedMenu isOpen={newsFeedMenuOpen} toggleMenu={toggleNewsFeedMenu}
+         username={user.userName} />
     </View>
   );
 };

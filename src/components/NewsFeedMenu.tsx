@@ -7,7 +7,7 @@ import { updateNotificationResponse } from '@/redux/slices/notificationsSlice';
 
 const { width } = Dimensions.get('window');
 
-const NewsFeedMenu = ({ isOpen, toggleMenu }) => {
+const NewsFeedMenu = ({ isOpen, toggleMenu, username }) => {
   const [menuAnim] = useState(new Animated.Value(width));
   const MENU_WIDTH = 300; // Define the open menu width
 
@@ -36,6 +36,7 @@ const NewsFeedMenu = ({ isOpen, toggleMenu }) => {
   // Friend request response handler
   const handleFriendRequestResponse = (notificationId: number, response: 'accept' | 'decline') => {
     const notification = notifications.find((n) => n.id === notificationId);
+
     if (!notification) return;
 
     const newText =
@@ -43,7 +44,8 @@ const NewsFeedMenu = ({ isOpen, toggleMenu }) => {
         ? notificationTemplates.friend_accepted.replace('{demanding_user}', notification.relatedUsername)
         : notificationTemplates.friend_declined.replace('{demanding_user}', notification.relatedUsername);
 
-    dispatch(updateNotificationResponse({ notificationId, response, newText }));
+
+    dispatch(updateNotificationResponse({ notificationId, response, newText, username,  relatedUsername: notification.relatedUsername }));
   };
 
   return (
@@ -57,12 +59,24 @@ const NewsFeedMenu = ({ isOpen, toggleMenu }) => {
       <View style={[styles.menuContent, { width: MENU_WIDTH }]}>
         <Text style={styles.placeholderText}>NewsFeed</Text>
 
-        {/* Display notifications */}
-       <ScrollView style={styles.notificationList}>
-         {notifications.length === 0 ? (
-           <Text style={styles.noNotifications}>No notifications yet.</Text>
-         ) : (
-           notifications.map((notification) => {
+     {/* Display notifications */}
+     <ScrollView style={styles.notificationList}>
+       {notifications.length === 0 ? (
+         <Text style={styles.noNotifications}>No notifications yet.</Text>
+       ) : (
+         [...notifications]
+           .sort((a, b) => {
+
+             // Move pending friend requests to the top
+             if (a.type === 'friend_request' && !a.responded) return -1; // Pending friend requests first
+             if (b.type === 'friend_request' && !b.responded) return 1;
+
+             // For all others, maintain chronological order
+             const dateA = new Date(a.createdAt);
+             const dateB = new Date(b.createdAt);
+             return dateB - dateA; // Newest notifications first
+           })
+           .map((notification) => {
              const notificationTemplate = notificationTemplates[notification.type];
              if (notificationTemplate) {
                // Use the updated text from Redux or fall back to the template
@@ -102,8 +116,9 @@ const NewsFeedMenu = ({ isOpen, toggleMenu }) => {
              }
              return null;
            })
-         )}
-       </ScrollView>
+       )}
+     </ScrollView>
+
 
       </View>
     </Animated.View>
