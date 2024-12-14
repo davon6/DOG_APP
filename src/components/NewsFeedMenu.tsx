@@ -1,67 +1,53 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
 import notificationTemplates from './notifications.json';
-import { useSelector } from 'react-redux';
-import { RootState } from '@/redux/store';  // Import RootState
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '@/redux/store'; // Import RootState
+import { updateNotificationResponse } from '@/redux/slices/notificationsSlice';
 
 const { width } = Dimensions.get('window');
 
 const NewsFeedMenu = ({ isOpen, toggleMenu }) => {
   const [menuAnim] = useState(new Animated.Value(width));
-  //const [isOpen, setIsOpen] = useState(false);
-
   const MENU_WIDTH = 300; // Define the open menu width
 
-  const notifications = useSelector((state: RootState) => state.notifications.list);  // Fetch notifications from the store
-  console.log("Notifications from Redux store:", notifications);
+  const dispatch = useDispatch(); // Access Redux dispatch
 
-   useEffect(() => {
-      if (isOpen) {
-        Animated.timing(menuAnim, {
-          toValue: width - MENU_WIDTH,
-          duration: 300,
-          useNativeDriver: true,
-        }).start();
-      } else {
-        Animated.timing(menuAnim, {
-          toValue: width,
-          duration: 300,
-          useNativeDriver: true,
-        }).start();
-      }
-    }, [isOpen]);
+  // Fetch notifications directly from Redux store
+  const notifications = useSelector((state: RootState) => state.notifications.list);
+  console.log('Notifications from Redux store:', notifications);
 
+  useEffect(() => {
+    if (isOpen) {
+      Animated.timing(menuAnim, {
+        toValue: width - MENU_WIDTH,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    } else {
+      Animated.timing(menuAnim, {
+        toValue: width,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [isOpen]);
 
+  // Friend request response handler
+  const handleFriendRequestResponse = (notificationId: number, response: 'accept' | 'decline') => {
+    const notification = notifications.find((n) => n.id === notificationId);
+    if (!notification) return;
 
-  // Function to handle the response (accept or decline) for friend request notifications
-  const handleFriendRequestResponse = (notificationId: string, response: 'accept' | 'decline') => {
-    console.log(`Response sent: ${response} for notification ${notificationId}`);
+    const newText =
+      response === 'accept'
+        ? notificationTemplates.friend_accepted.replace('{demanding_user}', notification.relatedUsername)
+        : notificationTemplates.friend_declined.replace('{demanding_user}', notification.relatedUsername);
 
-    // Find the notification and update its content dynamically
-    setNotifications((prevNotifications) =>
-      prevNotifications.map((notification) => {
-        if (notification.id === notificationId) {
-          const newText = response === 'accept'
-            ? notificationTemplates.friend_accepted.replace('{demanding_user}', notification.relatedUsername)
-            : notificationTemplates.friend_declined.replace('{demanding_user}', notification.relatedUsername);
-
-          return {
-            ...notification,
-            text: newText, // Update the notification text based on the response
-            responded: true, // Mark that the response was sent
-          };
-        }
-        return notification;
-      })
-    );
+    dispatch(updateNotificationResponse({ notificationId, response, newText }));
   };
-
-  // Local state for notifications with updated text and response status
-  const [notificationsState, setNotifications] = useState(notifications);
 
   return (
     <Animated.View style={[styles.container, { transform: [{ translateX: menuAnim }] }]}>
-
       {/* Menu Handle */}
       <TouchableOpacity style={styles.handle} onPress={toggleMenu}>
         <Text style={styles.handleText}>{isOpen ? '>' : '<'}</Text>
@@ -72,52 +58,53 @@ const NewsFeedMenu = ({ isOpen, toggleMenu }) => {
         <Text style={styles.placeholderText}>NewsFeed</Text>
 
         {/* Display notifications */}
-        <ScrollView style={styles.notificationList}>
-          {notificationsState.length === 0 ? (
-            <Text style={styles.noNotifications}>No notifications yet.</Text>
-          ) : (
-            notificationsState.map((notification) => {
-              const notificationTemplate = notificationTemplates[notification.type];
-              if (notificationTemplate) {
-                let notificationText = notification.text || notificationTemplate.replace(
-                  '{demanding_user}',
-                  notification.relatedUsername
-                ); // Use the updated text if available
+       <ScrollView style={styles.notificationList}>
+         {notifications.length === 0 ? (
+           <Text style={styles.noNotifications}>No notifications yet.</Text>
+         ) : (
+           notifications.map((notification) => {
+             const notificationTemplate = notificationTemplates[notification.type];
+             if (notificationTemplate) {
+               // Use the updated text from Redux or fall back to the template
+               const notificationText =
+                 notification.text ||
+                 notificationTemplate.replace('{demanding_user}', notification.relatedUsername);
 
-                let responseButtons = null;
+               let responseButtons = null;
 
-                // Check if the notification is a friend request and not already responded
-                if (notification.type === 'friend_request' && !notification.responded) {
-                  responseButtons = (
-                    <View style={styles.responseButtons}>
-                      <TouchableOpacity
-                        style={[styles.button, styles.acceptButton]}
-                        onPress={() => handleFriendRequestResponse(notification.id, 'accept')}
-                      >
-                        <Text style={styles.buttonText}>Accept</Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        style={[styles.button, styles.declineButton]}
-                        onPress={() => handleFriendRequestResponse(notification.id, 'decline')}
-                      >
-                        <Text style={styles.buttonText}>Decline</Text>
-                      </TouchableOpacity>
-                    </View>
-                  );
-                }
+               // Check if the notification is a friend request and not already responded
+               if (notification.type === 'friend_request' && !notification.responded) {
+                 responseButtons = (
+                   <View style={styles.responseButtons}>
+                     <TouchableOpacity
+                       style={[styles.button, styles.acceptButton]}
+                       onPress={() => handleFriendRequestResponse(notification.id, 'accept')}
+                     >
+                       <Text style={styles.buttonText}>Accept</Text>
+                     </TouchableOpacity>
+                     <TouchableOpacity
+                       style={[styles.button, styles.declineButton]}
+                       onPress={() => handleFriendRequestResponse(notification.id, 'decline')}
+                     >
+                       <Text style={styles.buttonText}>Decline</Text>
+                     </TouchableOpacity>
+                   </View>
+                 );
+               }
 
-                return (
-                  <View key={notification.id} style={styles.notificationItem}>
-                    <Text style={styles.notificationText}>{notificationText}</Text>
-                    {responseButtons}
-                    <Text style={styles.timestamp}>{notification.createdAt}</Text>
-                  </View>
-                );
-              }
-              return null;
-            })
-          )}
-        </ScrollView>
+               return (
+                 <View key={notification.id} style={styles.notificationItem}>
+                   <Text style={styles.notificationText}>{notificationText}</Text>
+                   {responseButtons}
+                   <Text style={styles.timestamp}>{notification.createdAt}</Text>
+                 </View>
+               );
+             }
+             return null;
+           })
+         )}
+       </ScrollView>
+
       </View>
     </Animated.View>
   );
@@ -151,16 +138,12 @@ const styles = StyleSheet.create({
   },
   menuContent: {
     flex: 1,
-    paddingHorizontal: 20, // Padding inside the menu for text
-    backgroundColor: 'white', // Optional: solid background for better visibility
-    alignSelf: 'flex-start', // Prevent centering the menu content outside the menu
-    justifyContent: 'center', // Center content vertically
+    paddingHorizontal: 20,
+    backgroundColor: 'white',
   },
   placeholderText: {
     fontSize: 16,
     color: '#555',
-    textAlign: 'left', // Align text to the left for better reading
-    lineHeight: 22, // Adjust for better readability
     marginBottom: 10,
   },
   notificationList: {

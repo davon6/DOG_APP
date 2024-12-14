@@ -1,10 +1,6 @@
 // store/notificationsSlice.ts
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import { fetchNotificationsApi, markNotificationAsReadApi, deleteNotificationApi } from '@/api/apiService';  // Import API methods
-
-
-console.log("the beginning!!!!");
-// Async Thunks
+import { fetchNotificationsApi, markNotificationAsReadApi, deleteNotificationApi } from '@/api/apiService'; // Import API methods
 
 // Define Notification type
 interface Notification {
@@ -14,6 +10,8 @@ interface Notification {
   extraData: any;
   isRead: boolean;
   createdAt: string;
+  text?: string; // Add text to allow dynamic updates in the UI
+  responded?: boolean; // Add responded to track friend request responses
 }
 
 // Define the shape of the state
@@ -23,15 +21,20 @@ interface NotificationsState {
   error: string | null;
 }
 
+// Initial State
+const initialState: NotificationsState = {
+  list: [],
+  status: 'idle', // 'idle', 'loading', 'succeeded', 'failed'
+  error: null,
+};
+
+// Async Thunks
 // Fetch Notifications from the server
 export const fetchNotifications = createAsyncThunk(
   'notifications/fetch',
-  async (username, { rejectWithValue }) => {
+  async (username: string, { rejectWithValue }) => {
     try {
-
-
-        console.log("bah we fetch notif ?"+ username);
-
+      console.log("Fetching notifications for:", username);
       const notifications = await fetchNotificationsApi(username);
       return notifications;
     } catch (error) {
@@ -40,14 +43,13 @@ export const fetchNotifications = createAsyncThunk(
   }
 );
 
-
 // Mark Notification as Read
 export const markNotificationAsRead = createAsyncThunk(
   'notifications/markAsRead',
   async (notificationId: number, { rejectWithValue }) => {
     try {
       await markNotificationAsReadApi(notificationId);
-      return notificationId;  // Return the notification ID to update the state
+      return notificationId; // Return the notification ID to update the state
     } catch (error) {
       return rejectWithValue('Failed to mark notification as read');
     }
@@ -56,57 +58,78 @@ export const markNotificationAsRead = createAsyncThunk(
 
 // Delete Notification
 export const deleteNotification = createAsyncThunk(
-  'notifications/deleteNotification',
+  'notifications/delete',
   async (notificationId: number, { rejectWithValue }) => {
     try {
       await deleteNotificationApi(notificationId);
-      return notificationId;  // Return the notification ID to delete from state
+      return notificationId; // Return the notification ID to delete from state
     } catch (error) {
       return rejectWithValue('Failed to delete notification');
     }
   }
 );
 
-// Initial State
-const initialState = {
-  list: [],
-  status: 'idle', // 'idle', 'loading', 'succeeded', 'failed'
-  error: null,
-};
+// Update Notification Response
+export const updateNotificationResponse = createAsyncThunk(
+  'notifications/updateResponse',
+  async (
+    { notificationId, response, newText }: { notificationId: number; response: 'accept' | 'decline'; newText: string },
+    { getState, rejectWithValue }
+  ) => {
+    try {
+      // You can integrate API logic here if needed
+      return { notificationId, response, newText };
+    } catch (error) {
+      return rejectWithValue('Failed to update notification response');
+    }
+  }
+);
 
 // Redux Slice
 const notificationSlice = createSlice({
   name: 'notifications',
   initialState,
-  reducers: {},
+  reducers: {}, // Remove the `updateNotificationResponse` reducer from here
   extraReducers: (builder) => {
     builder
+      // Fetch Notifications
       .addCase(fetchNotifications.pending, (state) => {
         state.status = 'loading';
       })
       .addCase(fetchNotifications.fulfilled, (state, action) => {
-            console.log("Fetched Notifications:", action.payload)
+        console.log('Fetched Notifications:', action.payload);
         state.status = 'succeeded';
-       // state.notifications = action.payload;
         state.list = action.payload;
       })
       .addCase(fetchNotifications.rejected, (state, action) => {
         state.status = 'failed';
-        state.error = action.payload;
+        state.error = action.payload as string;
       })
+      // Mark as Read
       .addCase(markNotificationAsRead.fulfilled, (state, action) => {
-        state.notifications = state.notifications.map((notification) =>
+        state.list = state.list.map((notification) =>
           notification.id === action.payload
             ? { ...notification, isRead: true }
             : notification
         );
       })
+      // Delete Notification
       .addCase(deleteNotification.fulfilled, (state, action) => {
-        state.notifications = state.notifications.filter(
+        state.list = state.list.filter(
           (notification) => notification.id !== action.payload
         );
+      })
+      // Update Notification Response
+      .addCase(updateNotificationResponse.fulfilled, (state, action) => {
+        const { notificationId, newText } = action.payload;
+        const notification = state.list.find((n) => n.id === notificationId);
+        if (notification) {
+          notification.text = newText; // Update the notification text dynamically
+          notification.responded = true; // Mark as responded
+        }
       });
   },
 });
+
 
 export default notificationSlice.reducer;
