@@ -105,6 +105,17 @@ export const fetchUsrs = async () => {
 };
 
 
+export const updateUser = async (username: string, field: object) => {
+  try {
+    const response = await api.post('/api/users/update',  { username, ...field });
+    return response.data;  // This is the list of friend statuses returned from the server
+  } catch (error) {
+    console.error('Error fetching friend statuses:', error);
+    throw error;  // Propagate the error for UI components to handle
+  }
+};
+
+
 export const getFriendStatuses = async (username: string) => {
   try {
     const response = await api.post('/api/friends/status', { username });

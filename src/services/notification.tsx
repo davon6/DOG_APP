@@ -1,9 +1,9 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text, TouchableOpacity, Alert } from "react-native";
 import Toast from "react-native-toast-message";
 import { Dispatch } from "redux";
 import { updateNotificationResponse } from "@/redux/slices/notificationsSlice";
-
+import notificationTemplates from './notifications.json';
 // TypeScript Interfaces
 interface Notification {
   id: string;

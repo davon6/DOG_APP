@@ -1,5 +1,5 @@
 import React, { useEffect, useContext, useState } from 'react';
-import { View, Text, StyleSheet, Animated, TouchableWithoutFeedback,TouchableOpacity, PanResponder, Dimensions, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Animated, TouchableWithoutFeedback,TouchableOpacity, PanResponder, Dimensions, ScrollView, TextInput } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { setActiveConversation, startConversation } from '@/redux/slices/messagingSlice';
@@ -7,6 +7,7 @@ import { RootState } from '@/redux/store';
 import { UserContext } from '@/services/Context';
 import MessagePopup from './MessagePopup';
 import NewDoggiePopup from './NewDoggiePopup';
+import {updateUser as updtU }  from '@/api/apiService';
 
 
 import { selectConversationsList } from '@/redux/selectors';
@@ -21,6 +22,8 @@ interface SlidingMenuProps {
 
 const SlidingMenu: React.FC<SlidingMenuProps> = ({ activeMenu, menuAnim, closeMenu, data }) => {
 const [showNewChatPopup, setShowNewChatPopup] = useState(false);
+const [editableField, setEditableField] = useState(null); // Track which field is being edited
+const [tempValue, setTempValue] = useState(''); // Temporary value for editing
 
   const NewChatPopup: React.FC<{ onClose: () => void; onSelectUser: (username: string) => void }> = ({ onClose, onSelectUser }) => (
     <View style={styles.popupContainer}>
@@ -37,23 +40,29 @@ const [showNewChatPopup, setShowNewChatPopup] = useState(false);
       ))*/}
 
 
-      {data[1].map((user) => (
-        <TouchableOpacity
-          key={user.username}
-          style={styles.userButton}
-          onPress={() => onSelectUser(user.username)}
-        >
-          <Text style={styles.buttonText}>{user.username}</Text>
-        </TouchableOpacity>
-      ))}
+        {
+          data[1] && data[1].length > 0 ? (
+            data[1].map((user) => (
+              <TouchableOpacity
+                key={user.username}
+                style={styles.userButton}
+                onPress={() => onSelectUser(user.username)}
+              >
+                <Text style={styles.buttonText}>{user.username}</Text>
+              </TouchableOpacity>
+            ))
+          ) : (
+            Alert.alert("No doggy friends yet, go on make some new.")
+          )
+        }
     </View>
   );
-/*
+/*Alert.alert("No doggy friends yet, go on make some new.")
   const tempUsersPull = ['rivka', 'jean', 'james', 'marvin','g','m','r','u', 'eric'];
 
   console.log("ready to replace "+ JSON.stringify(data[1]));
 */
-  const { user } = useContext(UserContext);
+  const { user, updateUser } = useContext(UserContext);
   const [showPopup, setShowPopup] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [newChatReceiver, setNewChatReceiver] = useState<string | null>(null);
@@ -129,6 +138,64 @@ console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
     }
   };
 
+    // Handle initiating edit mode
+    const handleEdit = (field, value) => {
+      setEditableField(field);
+      setTempValue(value);
+    };
+
+    // Handle saving the edited value
+    const handleSave = async (field) => {
+
+
+console.log("soooooo do we update ?"+field+ tempValue);
+
+      const updatedUser = { ...user, [field]: tempValue };
+         updateUser(updatedUser);
+
+      // Send update to server
+      try {
+        const response = await updtU(user.userName,  { [field]: tempValue });
+        if (!response.success) throw new Error(result.message);
+      } catch (error) {
+        console.error('Error updating user:', error);
+      }
+
+  console.log("no result but i may have worked");
+
+
+      setEditableField(null); // Exit edit mode
+    };
+
+    const renderField = (label, field) => (
+      <View style={styles.fieldContainer}>
+        <Text style={styles.menuText}>{label}: </Text>
+
+        {/* Editable Field Logic */}
+        {editableField === field ? (
+          <TextInput
+            style={styles.inputField}
+            placeholder={user[field]}
+            value={tempValue}
+            onChangeText={setTempValue}
+          />
+        ) : (
+          <Text style={styles.menuText}>{user[field] || 'Not specified'}</Text>
+        )}
+
+        {/* Edit Icon */}
+        {editableField === field ? (
+          <TouchableOpacity onPress={() => handleSave(field)}>
+            <Icon name="check" size={20} color="green" style={styles.icon} />
+          </TouchableOpacity>
+        ) : (
+          <TouchableOpacity onPress={() => handleEdit(field, user[field])}>
+            <Icon name="pencil" size={20} color="blue" style={styles.icon} />
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dx < -20,
     onPanResponderMove: (_, gestureState) => {
@@ -155,19 +222,21 @@ console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
     const conversationList = Object.values(conversations);
 
     switch (activeMenu) {
-	   case 'user':
-        return (
-          <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 192, 203, 0.8)' }]}>
-            <Text style={styles.menuTitle}>User Profile</Text>
-            <Text style={styles.menuText}>Username: {user?.userName ?? 'JohnDoe'}</Text>
-
-            <Text style={styles.menuText}>Doggy Name: {user?.dogName ?? 'Max'}</Text>
-            <Text style={styles.menuText}>Doggy Color: {user?.dogColor ?? 'Brown'}</Text>
-            <Text style={styles.menuText}>Doggy Weight: {user?.dogWeight ?? '15 kg'}</Text>
-            <Text style={styles.menuText}>Doggy Race: {user?.dogRace ?? 'Golden Retriever'}</Text>
-            <Text style={styles.menuText}>Doggy Vibe: {user?.dogPersonality ?? 'Playful'}</Text>
-          </View>
-        );
+	     case 'user':
+               return (
+                 <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 192, 203, 0.8)' }]}>
+                   <Text style={styles.menuTitle}>Doggie Profile</Text>
+                   {/*renderField('Username', 'userName')*/}
+                   {renderField('Doggy Name', 'dogName')}
+                    {renderField('Doggy Age', 'dogAge')}
+                   {renderField('Doggy Color', 'dogColor')}
+                   {renderField('Doggy Weight', 'dogWeight')}
+                   {renderField('Doggy Race', 'dogRace')}
+                   {renderField('Doggy Size', 'dogSize')}
+                   {renderField('Doggy Vibe', 'dogPersonality')}
+                   {renderField('Doggy Hobbies', 'dogHobbies')}
+                 </View>
+               );
       case 'msg':
         return (
           <View style={[styles.menuContent, { backgroundColor: 'rgba(173, 216, 230, 0.8)' }]}>
@@ -242,12 +311,12 @@ console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
             <Text style={styles.menuTitle}>Settings</Text>
             <Text style={styles.menuText}>App Skin Choice</Text>
             <Text style={styles.menuText}>Language</Text>
-							 
-											   
-					
-				   
-						   
-				 
+
+
+
+
+
+
             <Text style={styles.menuText}>Password & Email Management</Text>
             <Text style={styles.menuText}>Logout</Text>
           </View>
@@ -304,6 +373,32 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     justifyContent: 'space-evenly',
+  },
+    fieldContainer: {
+      flexDirection: 'row', // Arrange key, value, and icon horizontally
+      alignItems: 'center', // Vertically center the items
+      justifyContent: 'space-between', // Distribute space between elements
+      marginBottom: 10, // Add spacing between rows
+    },
+  menuText: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    flex: 1, // Allow the label to occupy its space proportionally
+    textAlign: 'left', // Align label to the left
+  },
+  valueText: {
+    fontSize: 16,
+    flex: 2, // Give more space to the value text
+    textAlign: 'left',
+  },
+  inputField: {
+    borderBottomWidth: 1,
+    borderColor: '#ccc',
+    fontSize: 16,
+    flex: 2,
+  },
+  icon: {
+    marginLeft: 10, // Add a little spacing between the value/input and the icon
   },
   menuTitle: {
     fontSize: 26,

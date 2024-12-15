@@ -71,15 +71,15 @@ console.log("await axios.post('http://172.20.10.8:3000/api/users/signup'")
         setSuccessMessage('Account created successfully!');
 
         updateUser({
-                                    DOG_NAME:user.dogName,
-                                    D_WEIGHT:user.dogWeight,
-                                    D_COLOR:user.dogColor,
-                                    D_RACE:user.dogRace,
-                                    D_AGE:user.dogAge,
-                                    D_SIZE:user.dogSize,
-                                    D_PERSONALITY:user.dogPersonality,
-                                    D_HOBBIES: user.dogHobbies,
-                                    USER_NAME: username
+                                    dogName:user.dogName,
+                                    dogWeight:user.dogWeight,
+                                    dogColor:user.dogColor,
+                                    dogRace:user.dogRace,
+                                    dogAge:user.dogAge,
+                                    dogSize:user.dogSize,
+                                    dogPersonality:user.dogPersonality,
+                                    dogHobbies: user.dogHobbies,
+                                    userName: username
            });
 
 
@@ -96,7 +96,11 @@ try {
          console.error('Failed to store the token:', storageError); // Log the error
        }
 
-        navigation.navigate('Example'); // Navigate after success
+   console.log("so our new user nqme is ", username);
+
+   let data = [username, ""];
+
+        navigation.navigate('Example',data); // Navigate after success
       }
     } catch (error) {
 

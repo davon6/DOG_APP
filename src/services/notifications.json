@@ -1,0 +1,10 @@
+{
+  "friend_request": "{demanding_user} has sent you a friend request.",
+  "friend_accepted": "You have accepted {demanding_user} friend request.",
+  "friend_request_accepted": "{demanding_user} has accepted your friend request !!",
+  "friend_declined": "You have declined {demanding_user} friend request.",
+  "multi1": "You have {friend_requests} friend requests and {new_messages} new messages. Have a look around to see them.",
+  "multi2": "You have {friend_requests} friend request and {new_messages} new message. Have a look around to see them.",
+  "multi3": "You have {number_friend_requests} friend requests. Go check them out.",
+  "new_message": "You received a new message from {sending_user}."
+}

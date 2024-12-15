@@ -75,15 +75,15 @@ const [weightUnit, setWeightUnit] = useState<string>('pounds');
 
 
 updateUser({
-    USER_NAME:"none",
-                DOG_NAME:dog_name,
-                D_WEIGHT:`${weight} ${weightUnit}`,
-                D_COLOR:color,
-                D_RACE:race,
-                D_AGE:`${age} ${ageUnit}`,
-                D_SIZE:size,
-                D_PERSONALITY:personality,
-                D_HOBBIES: selectedHobbies.join('; ')
+    userName:"none",
+                dogName:dog_name,
+                dogWeight:`${weight} ${weightUnit}`,
+                dogColor:color,
+                dogRace:race,
+                dogAge:`${age} ${ageUnit}`,
+                dogSize:size,
+                dogPersonality:personality,
+                dogHobbies: selectedHobbies.join('; ')
                });
 
 

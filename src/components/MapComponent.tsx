@@ -26,12 +26,12 @@ const MapComponent = ({ location, users }) => {
             latitude: user.LAST_LOCAT_LAT,
             longitude: user.LAST_LOCAT_LONG,
           }}
-          title={user.USER_NAME}
+          title={user.userName}
           description={`Tap to view more details`}
         >
           <Callout>
             <View>
-              <Text style={{ fontWeight: 'bold' }}>{user.USER_NAME}</Text>
+              <Text style={{ fontWeight: 'bold' }}>{user.userName}</Text>
               <Text>Doggy Name: {user.DOG_NAME}</Text>
               <Text>Doggy Color: {user.D_COLOR}</Text>
               <Text>Doggy Weight: {user.D_WEIGHT}</Text>

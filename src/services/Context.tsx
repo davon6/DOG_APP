@@ -52,18 +52,18 @@ export const UserProvider = ({ children }: UserProviderProps) => {
 
 
     setUser({
-      dogName: data.DOG_NAME,
-      userName: data.USER_NAME,
-      dogColor: data.D_COLOR,
-      dogWeight: data.D_WEIGHT,
-      dogRace: data.D_RACE,
-      userIcon: data.USER_ICON,
-      lastLocationLat: data.LAST_LOCAT_LAT,
-      lastLocationLong: data.LAST_LOCAT_LONG,
-      dogSize: data.D_SIZE,
-      dogAge: data.D_AGE,
-      dogPersonality: data.D_PERSONALITY,
-      dogHobbies: data.D_HOBBIES
+      dogName: data.dogName,
+      userName: data.userName,
+      dogColor: data.dogColor,
+      dogWeight: data.dogWeight,
+      dogRace: data.dogRace,
+      userIcon: data.userIcon,
+      lastLocationLat: data.lastLocationLat,
+      lastLocationLong: data.lastLocationLong,
+      dogSize: data.dogSize,
+      dogAge: data.dogAge,
+      dogPersonality: data.dogPersonality,
+      dogHobbies: data.dogHobbies
     });
   };
 

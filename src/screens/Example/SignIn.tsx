@@ -36,7 +36,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
 
       const finalUser = {
         ...response.data.dogInfo,
-        USER_NAME: username,
+        userName: username,
       };
 
       updateUser(finalUser);
