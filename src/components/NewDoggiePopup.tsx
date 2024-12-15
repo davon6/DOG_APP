@@ -80,19 +80,6 @@ const NewDoggiePopup: React.FC<NewDoggiePopupProps> = ({ onClose, onSelectDoggie
     );
   }, [doggieSearch, friendStatuses]);  // Re-run filter when search or friendStatuses changes
 
-
-/*
-  const tempDoggieList = [
-    { username: 'Buddy via charley', relationship: 'none' },
-    { username: 'Max via steeve', relationship: 'requested' },
-    { username: 'Charlie via elise', relationship: 'friends' },
-    { username: 'Bella via tony', relationship: 'none' },
-    { username: 'Luna via jerome', relationship: 'requested' },
-  ];
-*/
-
- // const [filteredDoggies, setFilteredDoggies] = useState(tempDoggieList);
-
   const handleCheckUser = () => {
     Alert.alert('Search Doggies', `Searching for "${doggieSearch}" on server...`);
     // Mock function to simulate a server search
@@ -101,12 +88,6 @@ const NewDoggiePopup: React.FC<NewDoggiePopupProps> = ({ onClose, onSelectDoggie
   // Filter doggies and trigger server call on `doggieSearch` change
 
   useEffect(() => {
-  /*  setFilteredDoggies(
-      tempDoggieList.filter((doggie) =>
-        doggie.username.toLowerCase().includes(doggieSearch.toLowerCase())
-      )
-    );
-*/
 
     // Trigger server-side search mock
     if (doggieSearch.trim() !== '') {
@@ -133,12 +114,12 @@ const NewDoggiePopup: React.FC<NewDoggiePopupProps> = ({ onClose, onSelectDoggie
        keyExtractor={(item) => item.username}
        renderItem={({ item }) => (
          <View style={styles.listItem}>
-           <TouchableOpacity
-             style={styles.userButton}
-             onPress={() => onSelectDoggie(item.username)}
-           >
-             <Text style={styles.buttonText}>{item.dog_name} via {item.username}</Text>
-           </TouchableOpacity>
+
+
+
+
+             <Text style={styles.userButton}>{item.dog_name} via {item.username}</Text>
+
            <TouchableOpacity
              style={styles.iconButton}
              onPress={() => {

@@ -79,6 +79,8 @@ export const updateNotificationResponse = createAsyncThunk(
   ) => {
     try {
 
+        console.log("updateNotificationResponse in slice "+username, relatedUsername, notificationId)
+
       if (response === 'accept') {
         // Call the acceptFriendRequest API
         await acceptFriendRequest(username, relatedUsername, notificationId);
@@ -136,6 +138,11 @@ const notificationSlice = createSlice({
       })
       // Update Notification Response
       .addCase(updateNotificationResponse.fulfilled, (state, action) => {
+
+          console.log("we get here");
+
+          console.log("we get here"+ JSON.stringify( action.payload));
+
         const { notificationId, newText } = action.payload;
         const notification = state.list.find((n) => n.id === notificationId);
         if (notification) {

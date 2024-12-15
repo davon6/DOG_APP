@@ -1,21 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Animated, TouchableOpacity, Dimensions, ScrollView } from 'react-native';
 import notificationTemplates from './notifications.json';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/redux/store'; // Import RootState
+import {  useDispatch } from 'react-redux';
 import { updateNotificationResponse } from '@/redux/slices/notificationsSlice';
 
 const { width } = Dimensions.get('window');
 
-const NewsFeedMenu = ({ isOpen, toggleMenu, username }) => {
+const NewsFeedMenu = ({ isOpen, toggleMenu, username, notifications }) => {
   const [menuAnim] = useState(new Animated.Value(width));
   const MENU_WIDTH = 300; // Define the open menu width
 
   const dispatch = useDispatch(); // Access Redux dispatch
 
   // Fetch notifications directly from Redux store
-  const notifications = useSelector((state: RootState) => state.notifications.list);
-  console.log('Notifications from Redux store:', notifications);
+
+  //console.log('Notifications from Redux store:', notifications);
 
   useEffect(() => {
     if (isOpen) {

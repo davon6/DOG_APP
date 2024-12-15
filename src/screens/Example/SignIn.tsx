@@ -47,7 +47,7 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       dispatch(fetchNotifications(username));  // Fetch notifications for the user
 
       // Navigate to the home screen or wherever you want to go
-      navigation.navigate('Example'); // Adjust this based on your navigation structure
+      navigation.navigate('Example',  username ); // Adjust this based on your navigation structure
     } catch (error) {
       setError('Invalid username or password');
     }

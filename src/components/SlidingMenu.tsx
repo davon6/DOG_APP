@@ -152,7 +152,6 @@ console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
             <Text style={styles.menuText}>Doggy Weight: {user?.dogWeight ?? '15 kg'}</Text>
             <Text style={styles.menuText}>Doggy Race: {user?.dogRace ?? 'Golden Retriever'}</Text>
             <Text style={styles.menuText}>Doggy Vibe: {user?.dogPersonality ?? 'Playful'}</Text>
-            <Text style={styles.menuText}>Doggy Friends: {'None, looser'}</Text>
           </View>
         );
       case 'msg':

@@ -6,26 +6,37 @@ import { useExampleLogic } from '@/hooks/useExampleLogic';
 import MapComponent from '@/components/MapComponent';
 import SlidingMenu from '@/components/SlidingMenu';
 import NewsFeedMenu from '@/components/NewsFeedMenu';
-import { UserContext } from '@/services/Context';
 import { ToastContainer, toast } from '@/services/react-toastify';
 import { notifyFriendRequest, toastConfig } from "@/services/notification"
-
+import { RootState } from '@/redux/store'; // Import RootState
+import { useSelector, useDispatch } from 'react-redux';
 
 const { width } = Dimensions.get('window');
 
-const App = () => {
+const App = (username) => {
   const [location, setLocation] = useState(null);
   const [activeMenu, setActiveMenu] = useState(null);
   const [menuAnim] = useState(new Animated.Value(-width));
    const [newsFeedMenuOpen, setNewsFeedMenuOpen] = useState(false);
-    const { user } = useContext(UserContext);
+      const notifications = useSelector((state: RootState) => state.notifications.list);
+const dispatch = useDispatch(); // Use dispatch here
 
   const { users, loading } = useExampleLogic();
-/*Kill for now
-    useEffect(() => {
-        notifyFriendRequest("JohnDoe");
 
-    }, []);*/
+
+/*
+ useEffect(() => {
+    notifyFriendRequest(dispatch, username.route.params, notifications);
+  }, [dispatch, username.route.params, notifications]);
+*/
+
+useEffect(() => {
+  if (username) {
+    // Call notifyFriendRequest only once
+    notifyFriendRequest(dispatch, username.route.params, notifications);
+  }
+}, [dispatch, username.route.params, notifications]);
+
 
   useEffect(() => {
     const watchId = Geolocation.watchPosition(
@@ -97,11 +108,11 @@ const App = () => {
     <SlidingMenu activeMenu={activeMenu} menuAnim={menuAnim} closeMenu={closeMenu} />
 
        <NewsFeedMenu isOpen={newsFeedMenuOpen} toggleMenu={toggleNewsFeedMenu}
-         username={user.userName} />
+        username={username.route.params}  notifications={notifications} />
     </View>
   );
 };
-
+// username={user.userName}
 const styles = StyleSheet.create({
   container: {
     flex: 1,
