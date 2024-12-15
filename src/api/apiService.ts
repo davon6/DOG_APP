@@ -106,10 +106,6 @@ export const fetchUsrs = async () => {
 
 
 export const getFriendStatuses = async (username: string) => {
-
-
-    console.log("soooooo  !!!"+ username)
-
   try {
     const response = await api.post('/api/friends/status', { username });
     return response.data;  // This is the list of friend statuses returned from the server
@@ -168,11 +164,11 @@ export const getAllConversations = async (username) => {
 // Friends API
 
 // Get all friends for a user
-export const getFriends = async (userId: number) => {
+export const getFriends = async (username: string) => {
   try {
-    const response = await api.get(`/api/friends`, {
-      params: { userId },
-    });
+      console.log("alooors no firends ? in api");
+
+    const response = await api.post(`/api/friends/get`, {username});
     return response.data;
   } catch (error) {
     console.error('Error fetching friends:', error);

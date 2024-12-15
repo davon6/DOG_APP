@@ -7,6 +7,7 @@ import { UserContext } from '@/services/Context';
 import { useDispatch } from 'react-redux';
 import { fetchAllConversations, fetchUsers } from '@/redux/slices/messagingSlice';
 import { fetchNotifications } from '@/redux/slices/notificationsSlice';  // Import the fetchNotifications action
+import {getFriends as getFri} from '@/api/apiService';
 
 interface SignInScreenProps {
   navigation: any; // Adjust type as necessary based on your navigation setup
@@ -46,8 +47,18 @@ const SignInScreen: React.FC<SignInScreenProps> = ({ navigation }) => {
       // Fetch notifications after sign-in
       dispatch(fetchNotifications(username));  // Fetch notifications for the user
 
+
+
+      const friends = await getFri(username) ;
+
+      console.log("messing with firends now");
+      console.log("---> ",friends);
+console.log("here problem")
+
+let data = [username, friends];
+
       // Navigate to the home screen or wherever you want to go
-      navigation.navigate('Example',  username ); // Adjust this based on your navigation structure
+      navigation.navigate('Example',  data); // Adjust this based on your navigation structure
     } catch (error) {
       setError('Invalid username or password');
     }

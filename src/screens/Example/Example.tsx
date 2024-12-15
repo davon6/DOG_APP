@@ -13,7 +13,7 @@ import { useSelector, useDispatch } from 'react-redux';
 
 const { width } = Dimensions.get('window');
 
-const App = (username) => {
+const App = (data) => {
   const [location, setLocation] = useState(null);
   const [activeMenu, setActiveMenu] = useState(null);
   const [menuAnim] = useState(new Animated.Value(-width));
@@ -30,12 +30,19 @@ const dispatch = useDispatch(); // Use dispatch here
   }, [dispatch, username.route.params, notifications]);
 */
 
+
 useEffect(() => {
-  if (username) {
+  if (data) {
+
+      console.log("oving slooowly --->"+JSON.stringify(data));
+
     // Call notifyFriendRequest only once
-    notifyFriendRequest(dispatch, username.route.params, notifications);
+    notifyFriendRequest(dispatch, data.route.params[0], notifications);
+
+
+         console.log("and the friends --->"+JSON.stringify(data.route.params[1]));
   }
-}, [dispatch, username.route.params, notifications]);
+}, [dispatch, data.route.params[0], notifications]);
 
 
   useEffect(() => {
@@ -105,10 +112,10 @@ useEffect(() => {
         </TouchableOpacity>
       </View>
 
-    <SlidingMenu activeMenu={activeMenu} menuAnim={menuAnim} closeMenu={closeMenu} />
+    <SlidingMenu activeMenu={activeMenu} menuAnim={menuAnim} closeMenu={closeMenu} data={data.route.params}/>
 
        <NewsFeedMenu isOpen={newsFeedMenuOpen} toggleMenu={toggleNewsFeedMenu}
-        username={username.route.params}  notifications={notifications} />
+        username={data.route.params[0]}  notifications={notifications} />
     </View>
   );
 };

@@ -19,7 +19,7 @@ interface SlidingMenuProps {
   closeMenu: () => void;
 }
 
-const SlidingMenu: React.FC<SlidingMenuProps> = ({ activeMenu, menuAnim, closeMenu }) => {
+const SlidingMenu: React.FC<SlidingMenuProps> = ({ activeMenu, menuAnim, closeMenu, data }) => {
 const [showNewChatPopup, setShowNewChatPopup] = useState(false);
 
   const NewChatPopup: React.FC<{ onClose: () => void; onSelectUser: (username: string) => void }> = ({ onClose, onSelectUser }) => (
@@ -30,15 +30,29 @@ const [showNewChatPopup, setShowNewChatPopup] = useState(false);
           <Icon name="close" size={24} color="black" />
         </TouchableOpacity>
       </View>
-      {tempUsersPull.map((username) => (
+      {/*tempUsersPull.map((username) => (
         <TouchableOpacity key={username} style={styles.userButton} onPress={() => onSelectUser(username)}>
           <Text style={styles.buttonText}>{username}</Text>
+        </TouchableOpacity>
+      ))*/}
+
+
+      {data[1].map((user) => (
+        <TouchableOpacity
+          key={user.username}
+          style={styles.userButton}
+          onPress={() => onSelectUser(user.username)}
+        >
+          <Text style={styles.buttonText}>{user.username}</Text>
         </TouchableOpacity>
       ))}
     </View>
   );
-
+/*
   const tempUsersPull = ['rivka', 'jean', 'james', 'marvin','g','m','r','u', 'eric'];
+
+  console.log("ready to replace "+ JSON.stringify(data[1]));
+*/
   const { user } = useContext(UserContext);
   const [showPopup, setShowPopup] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
