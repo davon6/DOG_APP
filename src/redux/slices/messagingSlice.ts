@@ -61,34 +61,6 @@ const messagingSlice = createSlice({
         state.conversations[conv.id] = conv;
       });
     },
-/*
-    addConversation: (state, action: PayloadAction<Conversation>) => {
-      state.conversations[action.payload.id] = action.payload;
-    },*/
-/*
-addConversation: (state, action: PayloadAction<Conversation>) => {
-  const conversation = action.payload;
-
-  console.log("addconversation payload "+ JSON.stringify(conversation));
-
-  // Log to verify when a conversation has missing participants
-  if (!conversation.participants || conversation.participants.length === 0) {
-    console.warn("Skipping incomplete conversation:", conversation);
-    return;
-  }
-
-  console.log("ALLLLORRRS "+JSON.stringify(conversation.otherUser));
-
-    console.log("ALLLLORRRS "+JSON.stringify(state.users));
-
-  const otherUserId = conversation.participants.find(id => id !== state.activeUserId);
-  const otherUser = state.users[otherUserId || ''];
-
-  state.conversations[conversation.id] = {
-    ...conversation,
-    otherUser: conversation.otherUser ?  conversation.otherUser : 'Unknown User',
-  };
-},*/
 
 addConversation: (state, action: PayloadAction<Conversation>) => {
   const conversation = action.payload;
@@ -178,6 +150,14 @@ addConversation: (state, action: PayloadAction<Conversation>) => {
        }
      }
    },
+      logout: (state) => {
+         return {
+           activeConversation: null,
+           conversations: {},
+           messages: {},
+           users: {},
+         };
+       }
 
   },
 });
@@ -190,6 +170,7 @@ export const {
   addMessage,
   setUsers,
   updateMessageId,
+  logout
 } = messagingSlice.actions;
 
 export { messagingSelectors };

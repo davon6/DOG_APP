@@ -106,7 +106,13 @@ export const updateNotificationResponse = createAsyncThunk(
 const notificationSlice = createSlice({
   name: 'notifications',
   initialState,
-  reducers: {}, // Remove the `updateNotificationResponse` reducer from here
+  reducers: {  logout: (state) => {
+                   return {
+                     list: [],
+                     status: 'idle',
+                     error: null,
+                   };
+                 }}, // Remove the `updateNotificationResponse` reducer from here
   extraReducers: (builder) => {
     builder
       // Fetch Notifications
@@ -152,6 +158,8 @@ const notificationSlice = createSlice({
       });
   },
 });
+
+export const { logout } = notificationSlice.actions;
 
 
 export default notificationSlice.reducer;

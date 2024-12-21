@@ -1,4 +1,5 @@
 import React, { useEffect, useContext, useState } from 'react';
+import {Alert} from 'react-native';
 import { View, Text, StyleSheet, Animated, TouchableWithoutFeedback,TouchableOpacity, PanResponder, Dimensions, ScrollView, TextInput } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -8,6 +9,9 @@ import { UserContext } from '@/services/Context';
 import MessagePopup from './MessagePopup';
 import NewDoggiePopup from './NewDoggiePopup';
 import {updateUser as updtU }  from '@/api/apiService';
+import LogOut from './LogOut';
+import { useLogOut } from '@/services';
+import { Toast } from 'react-native-toast-message';
 
 
 import { selectConversationsList } from '@/redux/selectors';
@@ -24,6 +28,36 @@ const SlidingMenu: React.FC<SlidingMenuProps> = ({ activeMenu, menuAnim, closeMe
 const [showNewChatPopup, setShowNewChatPopup] = useState(false);
 const [editableField, setEditableField] = useState(null); // Track which field is being edited
 const [tempValue, setTempValue] = useState(''); // Temporary value for editing
+
+  const { logOut } = useLogOut();
+
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const { user, updateUser, clearUser } = useContext(UserContext);
+      const dispatch = useDispatch();
+
+  const handleLogout = async () => {
+
+      console.log("up for some loggout");
+    setIsLoggingOut(true);
+
+         console.log("up for some loggout2");
+
+
+
+
+    await logOut();
+
+/*
+      Toast.show({
+                     type: 'info',
+                     text1: 'Goodbye!',
+                     text2: 'See you soon 🐾',
+                     position: 'top',
+                     visibilityTime: 2000,
+                   });*/
+    setTimeout(() => setIsLoggingOut(false), 2000); // Show overlay for 2 seconds
+  };
+
 
   const NewChatPopup: React.FC<{ onClose: () => void; onSelectUser: (username: string) => void }> = ({ onClose, onSelectUser }) => (
     <View style={styles.popupContainer}>
@@ -53,6 +87,7 @@ const [tempValue, setTempValue] = useState(''); // Temporary value for editing
             ))
           ) : (
             Alert.alert("No doggy friends yet, go on make some new.")
+             //setShowNewChatPopup(false)
           )
         }
     </View>
@@ -62,12 +97,12 @@ const [tempValue, setTempValue] = useState(''); // Temporary value for editing
 
   console.log("ready to replace "+ JSON.stringify(data[1]));
 */
-  const { user, updateUser } = useContext(UserContext);
+
   const [showPopup, setShowPopup] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [newChatReceiver, setNewChatReceiver] = useState<string | null>(null);
   //const { user } = useContext(UserContext);
-  const dispatch = useDispatch();
+
 
   // Get conversations as an object and users as an object
   //const conversations = useSelector((state: RootState) => state.messaging.conversations);
@@ -305,23 +340,26 @@ console.log("soooooo do we update ?"+field+ tempValue);
           </View>
         );
 
-      case 'gear':
-        return (
-          <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 165, 0, 0.8)' }]}>
-            <Text style={styles.menuTitle}>Settings</Text>
-            <Text style={styles.menuText}>App Skin Choice</Text>
-            <Text style={styles.menuText}>Language</Text>
+case 'gear':
+  return (
+    <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 165, 0, 0.8)' }]}>
+      <Text style={styles.menuTitle}>Settings</Text>
+      <Text style={styles.menuText}>App Skin Choice</Text>
+      <Text style={styles.menuText}>Language</Text>
+      <Text style={styles.menuText}>Password & Email Management</Text>
 
+      {/* Buttons for Logout and Signout */}
+      <View style={styles.buttonRow}>
+        <TouchableOpacity style={styles.logoutButton}   onPress={handleLogout}>
+          <Text style={styles.buttonText}>Logout</Text>
+        </TouchableOpacity>
 
-
-
-
-
-            <Text style={styles.menuText}>Password & Email Management</Text>
-            <Text style={styles.menuText}>Logout</Text>
-          </View>
-        );
-
+        <TouchableOpacity style={styles.signoutButton} onPress={() => console.log('Signout pressed')}>
+          <Text style={styles.buttonText}>Signout</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
       default:
         return null;
     }
@@ -353,6 +391,9 @@ console.log("soooooo do we update ?"+field+ tempValue);
 
            />
          )}
+
+         <LogOut isLoggingOut={isLoggingOut} />
+
     </Animated.View>
   );
 
@@ -486,6 +527,24 @@ headerText: {
     borderRadius: 8,
     marginVertical: 5,
   },
+   buttonRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-evenly',
+      marginTop: 20,
+    },
+    logoutButton: {
+      backgroundColor: '#FF6347', // Tomato red
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 8,
+    },
+    signoutButton: {
+      backgroundColor: '#4682B4', // Steel blue
+      paddingVertical: 10,
+      paddingHorizontal: 20,
+      borderRadius: 8,
+    },
+
 
 });
 
