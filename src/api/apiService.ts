@@ -311,4 +311,25 @@ export const deleteNotificationApi = async (notificationId: number) => {
 
 
 
+export const signOut = async (username: string) => {
+  try {
+    console.log("signingout for username:", username);
+
+    // Send the username in the request body
+    const response = await api.post('/api/users/signOut', {
+      username,  // Passed in the body, not params
+    });
+
+
+    console.log("comeonnnne signout "+JSON.stringify(response.status));
+
+    return response.status;
+  } catch (error) {
+    console.error('Error fetching notifications:', error);
+    throw error;  // Propagate the error to be handled in the component
+  }
+};
+
+
+
 export default api;

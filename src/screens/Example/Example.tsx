@@ -10,26 +10,41 @@ import { ToastContainer, toast } from '@/services/react-toastify';
 import { notifyFriendRequest, toastConfig } from "@/services/notification"
 import { RootState } from '@/redux/store'; // Import RootState
 import { useSelector, useDispatch } from 'react-redux';
-
+import LogOut from '@/components/LogOut'
+import SignOutPopup from '@/components/SignOut';
+import { useLogOut } from '@/services';
 const { width } = Dimensions.get('window');
 
 const App = (data) => {
-  const [location, setLocation] = useState(null);
-  const [activeMenu, setActiveMenu] = useState(null);
-  const [menuAnim] = useState(new Animated.Value(-width));
-   const [newsFeedMenuOpen, setNewsFeedMenuOpen] = useState(false);
-      const notifications = useSelector((state: RootState) => state.notifications.list);
-const dispatch = useDispatch(); // Use dispatch here
-
-  const { users, loading } = useExampleLogic();
-
+    const [location, setLocation] = useState(null);
+    const [activeMenu, setActiveMenu] = useState(null);
+    const [menuAnim] = useState(new Animated.Value(-width));
+    const [newsFeedMenuOpen, setNewsFeedMenuOpen] = useState(false);
+    const notifications = useSelector((state: RootState) => state.notifications.list);
+    const dispatch = useDispatch(); // Use dispatch here
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const { users, loading } = useExampleLogic();
+    const { logOut } = useLogOut();
+    const [showSignOutPopup, setShowSignOutPopup] = useState(false);
 
 /*
  useEffect(() => {
     notifyFriendRequest(dispatch, username.route.params, notifications);
   }, [dispatch, username.route.params, notifications]);
 */
+ const handleLogout = async () => {
+    console.log("Starting logout process...");
+    setIsLoggingOut(true);
 
+    await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate logout process
+    console.log("Logout completed!");
+
+ await logOut();
+  await new Promise((resolve) => setTimeout(resolve, 500));
+    setIsLoggingOut(false); // Hide the overlay after 2 seconds
+
+
+  };
 
 useEffect(() => {
   if (data) {
@@ -112,10 +127,19 @@ useEffect(() => {
         </TouchableOpacity>
       </View>
 
-    <SlidingMenu activeMenu={activeMenu} menuAnim={menuAnim} closeMenu={closeMenu} data={data.route.params}/>
+    <SlidingMenu activeMenu={activeMenu} menuAnim={menuAnim} closeMenu={closeMenu} data={data.route.params} handleLogout={handleLogout}
+       triggerSignOutPopup={() => setShowSignOutPopup(true)} />
 
        <NewsFeedMenu isOpen={newsFeedMenuOpen} toggleMenu={toggleNewsFeedMenu}
         username={data.route.params[0]}  notifications={notifications} />
+
+        <LogOut isLoggingOut={isLoggingOut} />
+
+           {showSignOutPopup && (
+                  <SignOutPopup onClose={() => setShowSignOutPopup(false)} closeMenu={closeMenu} handleLogout={handleLogout} name={data.route.params[0]}  />
+                )}
+
+
     </View>
   );
 };

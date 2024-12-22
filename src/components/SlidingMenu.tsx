@@ -9,8 +9,6 @@ import { UserContext } from '@/services/Context';
 import MessagePopup from './MessagePopup';
 import NewDoggiePopup from './NewDoggiePopup';
 import {updateUser as updtU }  from '@/api/apiService';
-import LogOut from './LogOut';
-import { useLogOut } from '@/services';
 import { Toast } from 'react-native-toast-message';
 
 
@@ -24,17 +22,14 @@ interface SlidingMenuProps {
   closeMenu: () => void;
 }
 
-const SlidingMenu: React.FC<SlidingMenuProps> = ({ activeMenu, menuAnim, closeMenu, data }) => {
+const SlidingMenu: React.FC<SlidingMenuProps> = ({ activeMenu, menuAnim, closeMenu, data, handleLogout,    triggerSignOutPopup }) => {
 const [showNewChatPopup, setShowNewChatPopup] = useState(false);
 const [editableField, setEditableField] = useState(null); // Track which field is being edited
 const [tempValue, setTempValue] = useState(''); // Temporary value for editing
-
-  const { logOut } = useLogOut();
-
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const { user, updateUser, clearUser } = useContext(UserContext);
       const dispatch = useDispatch();
-
+/*
   const handleLogout = async () => {
 
       console.log("up for some loggout");
@@ -42,21 +37,9 @@ const [tempValue, setTempValue] = useState(''); // Temporary value for editing
 
          console.log("up for some loggout2");
 
-
-
-
     await logOut();
-
-/*
-      Toast.show({
-                     type: 'info',
-                     text1: 'Goodbye!',
-                     text2: 'See you soon 🐾',
-                     position: 'top',
-                     visibilityTime: 2000,
-                   });*/
     setTimeout(() => setIsLoggingOut(false), 2000); // Show overlay for 2 seconds
-  };
+  };*/
 
 
   const NewChatPopup: React.FC<{ onClose: () => void; onSelectUser: (username: string) => void }> = ({ onClose, onSelectUser }) => (
@@ -355,7 +338,7 @@ case 'gear':
         </TouchableOpacity>
 
         <TouchableOpacity style={styles.signoutButton} onPress={() => console.log('Signout pressed')}>
-          <Text style={styles.buttonText}>Signout</Text>
+          <Text style={styles.buttonText} onPress={triggerSignOutPopup}>Signout</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -391,8 +374,6 @@ case 'gear':
 
            />
          )}
-
-         <LogOut isLoggingOut={isLoggingOut} />
 
     </Animated.View>
   );
