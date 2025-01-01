@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useRef, useEffect, useState, useContext } from 'react';
 import { View, StyleSheet, TouchableOpacity, Animated, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -27,6 +27,110 @@ const App = (data) => {
     const { logOut } = useLogOut();
     const [showSignOutPopup, setShowSignOutPopup] = useState(false);
 
+const ws = useRef(null);
+  const reconnectTimeout = useRef(null);
+  const heartbeatInterval = useRef(null);
+  const connectionTimeout = useRef(null);
+
+  const [isConnected, setIsConnected] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+
+  const username = data.route.params[0]; // Replace with your dynamic username or params
+  const maxRetryLimit = 5; // Max number of reconnection attempts
+  const backoffBase = 1000; // Initial delay for reconnection (in milliseconds)
+  const maxBackoffDelay = 30000; // Maximum delay between retries (30 seconds)
+
+
+
+
+
+   const connectWebSocket = () =>
+   {
+     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
+       console.log("WebSocket is already connected, skipping reconnect.");
+       return; // Prevent redundant connections
+     }
+
+     console.log("Attempting to connect to WebSocket...");
+
+     ws.current = new WebSocket(`wss://3723-2a04-cec0-10c3-3cf8-f5ab-57b3-4b6f-590f.ngrok-free.app?username=${username}`);
+
+     // Set connection timeout (10 seconds)
+     connectionTimeout.current = setTimeout(() => {
+       if (ws.current && ws.current.readyState !== WebSocket.OPEN) {
+         console.warn("Connection timeout reached, closing WebSocket.");
+         ws.current.close(); // Force close if it didn't connect
+       }
+     }, 10000);
+
+     ws.current.onopen = () => {
+       console.log("WebSocket connected");
+       setIsConnected(true);
+       setRetryCount(0);
+
+       // Clear connection timeout
+       clearTimeout(connectionTimeout.current);
+
+       // Start sending heartbeats every 15 seconds
+       heartbeatInterval.current = setInterval(() => {
+         if (ws.current.readyState === WebSocket.OPEN) {
+           ws.current.send(JSON.stringify({ type: "heartbeat" }));
+           console.log("Heartbeat sent");
+         }
+       }, 15000);
+     };
+
+     ws.current.onmessage = (event) => {
+          const receivedData = JSON.parse(event.data);
+       console.log("Received message:", event.data);
+       // Handle incoming messages...
+       if (receivedData.notification) {
+                             notifyFriendRequest(dispatch, data.route.params[0], [receivedData.notification]);
+                         }
+                     };
+
+     ws.current.onerror = (error) => {
+       console.error("WebSocket error occurred:", error);
+     };
+
+     ws.current.onclose = (event) => {
+       console.log(`WebSocket closed: Code ${event.code}, Reason: ${event.reason}`);
+       setIsConnected(false);
+
+       // Clear intervals and timeouts
+       clearInterval(heartbeatInterval.current);
+       clearTimeout(connectionTimeout.current);
+
+       // Attempt to reconnect
+       if (retryCount < maxRetryLimit) {
+         const retryDelay = Math.min(backoffBase * Math.pow(2, retryCount), maxBackoffDelay);
+         console.log(`Reconnecting in ${retryDelay / 1000} seconds... (Attempt ${retryCount + 1})`);
+         reconnectTimeout.current = setTimeout(() => {
+           setRetryCount((prev) => prev + 1);
+           connectWebSocket();
+         }, retryDelay);
+       } else {
+         console.error("Max reconnection attempts reached. Giving up.");
+       }
+     };
+   };
+
+
+useEffect(() => {
+  connectWebSocket();
+
+  return () => {
+    // Cleanup on component unmount
+    console.log("Cleaning up WebSocket resources...");
+    if (ws.current) {
+      ws.current.close();
+      ws.current = null;
+    }
+    if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
+    if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
+    if (connectionTimeout.current) clearTimeout(connectionTimeout.current);
+  };
+}, []);
 /*
  useEffect(() => {
     notifyFriendRequest(dispatch, username.route.params, notifications);
@@ -49,10 +153,10 @@ const App = (data) => {
 useEffect(() => {
   if (data) {
 
-      console.log("oving slooowly --->"+JSON.stringify(data));
+      console.log("oving slooowly --->"+JSON.stringify(notifications));
 
     // Call notifyFriendRequest only once
-    notifyFriendRequest(dispatch, data.route.params[0], notifications);
+   // notifyFriendRequest(dispatch, data.route.params[0], notifications);
 
 
          console.log("and the friends --->"+JSON.stringify(data.route.params[1]));

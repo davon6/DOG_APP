@@ -1,6 +1,14 @@
 import React, { useState, useEffect, useContext } from 'react';
-import {View,Text,StyleSheet,TouchableOpacity,Animated,Easing,TextInput,} from 'react-native';
-import LinearGradientComponent from 'react-native-linear-gradient';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  Animated,
+  Easing,
+  TextInput,
+  ActivityIndicator,
+} from 'react-native';
 import LottieView from 'lottie-react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
@@ -15,12 +23,21 @@ const Welcome: React.FC = () => {
   const navigation = useNavigation();
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [loading, setLoading] = useState<boolean>(false); // Loading state
   const { updateUser } = useContext(UserContext);
   const dispatch = useDispatch();
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null);
-
+  const [error, setError] = useState<string>('');
   const [treeMovement] = useState(new Animated.Value(0)); // For horizontal movement of trees
   const [treeScale] = useState(new Animated.Value(1)); // For scaling trees to create depth
+
+/*
+const API_URL = 'http://localhost:3000';
+fetch(`${API_URL}/test`)
+  .then(response => response.json())
+  .then(data => console.log(data))
+  .catch(error => console.error(error));
+*/
 
   useEffect(() => {
     if (password && typingTimeout) {
@@ -30,118 +47,108 @@ const Welcome: React.FC = () => {
     if (password) {
       const timeout = setTimeout(() => {
         handleSubmit();
-      }, 2000); // 2 seconds delay after typing stops
+      }, 700);
       setTypingTimeout(timeout);
     }
   }, [password]);
 
+  useEffect(() => {
+    // Animate trees in the background for a parallax effect
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(treeMovement, {
+          toValue: 1,
+          duration: 10000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+        Animated.timing(treeMovement, {
+          toValue: 0,
+          duration: 0,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
 
-   useEffect(() => {
-     // Animate trees in the background for a parallax effect
-     Animated.loop(
-       Animated.sequence([
-         Animated.timing(treeMovement, {
-           toValue: 1,
-           duration: 10000,
-           easing: Easing.linear,
-           useNativeDriver: true,
-         }),
-         Animated.timing(treeMovement, {
-           toValue: 0,
-           duration: 0,
-           useNativeDriver: true,
-         }),
-       ])
-     ).start();
+    // Animate the scaling of trees to simulate 3D depth
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(treeScale, {
+          toValue: 1.2,
+          duration: 3000,
+          easing: Easing.ease,
+          useNativeDriver: true,
+        }),
+        Animated.timing(treeScale, {
+          toValue: 1,
+          duration: 3000,
+          easing: Easing.ease,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
 
-     // Animate the scaling of trees to simulate 3D depth
-     Animated.loop(
-       Animated.sequence([
-         Animated.timing(treeScale, {
-           toValue: 1.2,
-           duration: 3000,
-           easing: Easing.ease,
-           useNativeDriver: true,
-         }),
-         Animated.timing(treeScale, {
-           toValue: 1,
-           duration: 3000,
-           easing: Easing.ease,
-           useNativeDriver: true,
-         }),
-       ])
-     ).start();
-   }, []);
-
-     const treeStyle = {
-       transform: [
-         { translateX: treeMovement.interpolate({ inputRange: [0, 1], outputRange: [0, -500] }) },
-         { scale: treeScale },
-       ],
-     };
+  const treeStyle = {
+    transform: [
+      { translateX: treeMovement.interpolate({ inputRange: [0, 1], outputRange: [0, -500] }) },
+      { scale: treeScale },
+    ],
+  };
 
   const handleSubmit = async () => {
-    console.log('Form submitted', { username, password });
-     try {
+    setLoading(true); // Start loading
+    setError(''); // Clear previous errors
+    try {
+      const response = await axios.post('https://3723-2a04-cec0-10c3-3cf8-f5ab-57b3-4b6f-590f.ngrok-free.app/api/users/signin', {
+        username,
+        password,
+      });
 
+      await AsyncStorage.setItem('userToken', response.data.token);
+      await AsyncStorage.setItem('refreshToken', response.data.refreshToken);
+      await AsyncStorage.setItem('user_info', JSON.stringify(response.data.dogInfo));
 
+      const finalUser = {
+        ...response.data.dogInfo,
+        userName: username,
+      };
 
-          const response = await axios.post('http://172.20.10.2:3000/api/users/signin', { username, password });
+      updateUser(finalUser);
 
-          try {
-            await AsyncStorage.setItem('userToken', response.data.token);
-            await AsyncStorage.setItem('refreshToken', response.data.refreshToken);
-            await AsyncStorage.setItem('user_info', JSON.stringify(response.data.dogInfo));
+      // Dispatch the actions after successful sign-in
+      dispatch(fetchUsers());
+      dispatch(fetchAllConversations(username));
+      dispatch(fetchNotifications(username));
 
-            console.log('Tokens stored successfully');
-          } catch (storageError) {
-            console.error('Failed to store the token:', storageError);
-          }
+      const friends = await getFri(username);
 
-          const finalUser = {
-            ...response.data.dogInfo,
-            userName: username,
-          };
-
-          updateUser(finalUser);
-
-          // Dispatch the actions after successful sign-in
-          dispatch(fetchUsers());
-          dispatch(fetchAllConversations(username));
-          // Fetch notifications after sign-in
-          dispatch(fetchNotifications(username));  // Fetch notifications for the user
-
-
-
-          const friends = await getFri(username) ;
-
-          console.log("messing with firends now");
-          console.log("---> ",friends);
-    console.log("here problem")
-
-    let data = [username, friends];
-
-          // Navigate to the home screen or wherever you want to go
-          navigation.navigate('Example',  data); // Adjust this based on your navigation structure
-        } catch (error) {
-          setError('Invalid username or password');
-        }
+      const data = [username, friends];
+      navigation.navigate('Example', data);
+      setUsername('');
+      setPassword('');
+      // Adjust this based on your navigation structure
+    } catch (err) {
+      setError('Invalid username or password');
+    } finally {
+      setLoading(false); // End loading
+    }
   };
 
   return (
     <View style={styles.container}>
       {/* Trees on the left */}
       <View style={styles.leftContainer}>
-       {/* Background Trees */}
-       <Animated.View style={[styles.tree, treeStyle]}>
-         {/* Add more trees as needed */}
-         <View style={[styles.treeElement, { left: 50, top: 100 }]}>
-           <Text style={styles.treeText}>🌳</Text>
-         </View>
-         <View style={[styles.treeElement, { left: 200, top: 150 }]}>
-           <Text style={styles.treeText}>🌲</Text>
-         </View>
-       </Animated.View>
+        {/* Background Trees */}
+        <Animated.View style={[styles.tree, treeStyle]}>
+          {/* Add more trees as needed */}
+          <View style={[styles.treeElement, { left: 50, top: 100 }]}>
+            <Text style={styles.treeText}>🌳</Text>
+          </View>
+          <View style={[styles.treeElement, { left: 200, top: 150 }]}>
+            <Text style={styles.treeText}>🌲</Text>
+          </View>
+        </Animated.View>
       </View>
 
       {/* Center section */}
@@ -151,6 +158,7 @@ const Welcome: React.FC = () => {
           onChangeText={setUsername}
           value={username}
           style={styles.input}
+          editable={!loading} // Disable input when loading
         />
         <TextInput
           placeholder="Password"
@@ -158,16 +166,23 @@ const Welcome: React.FC = () => {
           onChangeText={setPassword}
           value={password}
           style={styles.input}
+          editable={!loading} // Disable input when loading
         />
 
-        <View style={styles.linkContainer}>
-          <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
-            <Text style={styles.linkText}>Sign Up</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
-            <Text style={styles.linkText}>Forgot Password?</Text>
-          </TouchableOpacity>
-        </View>
+        {loading ? (
+          <ActivityIndicator size="large" color="#00b4d8" style={styles.loadingIndicator} />
+        ) : (
+          <View style={styles.linkContainer}>
+            <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
+              <Text style={styles.linkText}>Sign Up</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('ForgotPassword')}>
+              <Text style={styles.linkText}>Forgot Password?</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {error ? <Text style={styles.error}>{error}</Text> : null}
       </View>
 
       {/* Dog animation on the right */}
@@ -220,7 +235,7 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     width: 300,
     fontSize: 16,
-    height : 80
+    height: 80,
   },
   linkContainer: {
     flexDirection: 'row',
@@ -231,6 +246,13 @@ const styles = StyleSheet.create({
     color: '#00b4d8',
     fontSize: 16,
     textDecorationLine: 'underline',
+  },
+  loadingIndicator: {
+    marginVertical: 10,
+  },
+  error: {
+    color: 'red',
+    marginTop: 10,
   },
 });
 
