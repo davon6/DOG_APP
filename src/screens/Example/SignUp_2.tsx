@@ -39,7 +39,7 @@ const SignUp_2Screen: React.FC<SignUp_2ScreenProps> = ({ navigation }) => {
 
 console.log("await axios.post('http://172.20.10.8:3000/api/users/signup'")
 
-      const response = await axios.post('http://192.168.30.1:3000/api/users/signup', {
+      const response = await axios.post('https://e9e3-2a04-cec0-105d-76e2-9932-f67a-e713-120f.ngrok-free.app/api/users/signup', {
         username,
         email,
         password,

@@ -57,7 +57,12 @@ export const notifyFriendRequest = (
   username: string,
   notifications: Notification[]
 ) => {
+    console.log("notfication from ws "+JSON.stringify(notifications));
+
   const unreadFriendRequests = notifications.filter(
+
+
+
     (notification) => !notification.isRead && notification.type === "friend_request"
   );
 

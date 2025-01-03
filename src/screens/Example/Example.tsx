@@ -13,9 +13,11 @@ import { useSelector, useDispatch } from 'react-redux';
 import LogOut from '@/components/LogOut'
 import SignOutPopup from '@/components/SignOut';
 import { useLogOut } from '@/services';
+import { useWebSocket } from '@/services/wsSocket';
 const { width } = Dimensions.get('window');
 
 const App = (data) => {
+
     const [location, setLocation] = useState(null);
     const [activeMenu, setActiveMenu] = useState(null);
     const [menuAnim] = useState(new Animated.Value(-width));
@@ -27,6 +29,13 @@ const App = (data) => {
     const { logOut } = useLogOut();
     const [showSignOutPopup, setShowSignOutPopup] = useState(false);
 
+
+ const username = data.route.params[0];
+  const { isConnected, closeWebSocket } = useWebSocket(
+    'wss://e9e3-2a04-cec0-105d-76e2-9932-f67a-e713-120f.ngrok-free.app',
+    username
+  );
+/*
 const ws = useRef(null);
   const reconnectTimeout = useRef(null);
   const heartbeatInterval = useRef(null);
@@ -44,81 +53,96 @@ const ws = useRef(null);
 
 
 
-   const connectWebSocket = () =>
-   {
-     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-       console.log("WebSocket is already connected, skipping reconnect.");
-       return; // Prevent redundant connections
-     }
+  const connectWebSocket = () => {
+        if (isLoggingOut) {
+          console.warn("Skipping WebSocket connection during logout.");
+          return;
+        }
+    else{
+    if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
+      console.log("Attempting to connect to WebSocket...");
 
-     console.log("Attempting to connect to WebSocket...");
+      ws.current = new WebSocket(`wss://e9e3-2a04-cec0-105d-76e2-9932-f67a-e713-120f.ngrok-free.app?username=${username}`);
 
-     ws.current = new WebSocket(`wss://3723-2a04-cec0-10c3-3cf8-f5ab-57b3-4b6f-590f.ngrok-free.app?username=${username}`);
+      // Set connection timeout (10 seconds)
+      connectionTimeout.current = setTimeout(() => {
+        if (ws.current && ws.current.readyState !== WebSocket.OPEN) {
+          console.warn("Connection timeout reached, closing WebSocket.");
+          ws.current?.close(); // Use optional chaining to ensure ws.current exists
+        }
+      }, 10000);
 
-     // Set connection timeout (10 seconds)
-     connectionTimeout.current = setTimeout(() => {
-       if (ws.current && ws.current.readyState !== WebSocket.OPEN) {
-         console.warn("Connection timeout reached, closing WebSocket.");
-         ws.current.close(); // Force close if it didn't connect
-       }
-     }, 10000);
+      ws.current.onopen = () => {
+        console.log("WebSocket connected");
+        setIsConnected(true);
+        setRetryCount(0);
 
-     ws.current.onopen = () => {
-       console.log("WebSocket connected");
-       setIsConnected(true);
-       setRetryCount(0);
+        // Clear connection timeout
+        clearTimeout(connectionTimeout.current);
 
-       // Clear connection timeout
-       clearTimeout(connectionTimeout.current);
+        // Start sending heartbeats every 15 seconds
+        heartbeatInterval.current = setInterval(() => {
+          if (ws.current && ws.current.readyState === WebSocket.OPEN) { // Guard check
+            ws.current.send(JSON.stringify({ type: "heartbeat" }));
+          } else {
+            console.warn("Cannot send heartbeat, WebSocket is not connected.");
+          }
+        }, 15000);
+      };
 
-       // Start sending heartbeats every 15 seconds
-       heartbeatInterval.current = setInterval(() => {
-         if (ws.current.readyState === WebSocket.OPEN) {
-           ws.current.send(JSON.stringify({ type: "heartbeat" }));
-           console.log("Heartbeat sent");
-         }
-       }, 15000);
-     };
+      ws.current.onmessage = (event) => {
+        const receivedData = JSON.parse(event.data);
+        if (receivedData.notification) {
+          notifyFriendRequest(dispatch, data.route.params[0], [receivedData.notification]);
+        }
+      };
 
-     ws.current.onmessage = (event) => {
-          const receivedData = JSON.parse(event.data);
-       console.log("Received message:", event.data);
-       // Handle incoming messages...
-       if (receivedData.notification) {
-                             notifyFriendRequest(dispatch, data.route.params[0], [receivedData.notification]);
-                         }
-                     };
+      ws.current.onerror = (error) => {
+        console.error("WebSocket error occurred:", error);
+      };
 
-     ws.current.onerror = (error) => {
-       console.error("WebSocket error occurred:", error);
-     };
+      ws.current.onclose = (event) => {
+        console.log(`WebSocket closed: Code ${event.code}, Reason: ${event.reason}`);
 
-     ws.current.onclose = (event) => {
-       console.log(`WebSocket closed: Code ${event.code}, Reason: ${event.reason}`);
-       setIsConnected(false);
+         if (!isLoggingOut) {
+        setIsConnected(false);
+}else{   console.warn("Skipping WebSocket reconnection during logout.");
+                  return;}
 
-       // Clear intervals and timeouts
-       clearInterval(heartbeatInterval.current);
-       clearTimeout(connectionTimeout.current);
+        // Clear intervals and timeouts
+        clearInterval(heartbeatInterval.current);
+        clearTimeout(connectionTimeout.current);
 
-       // Attempt to reconnect
-       if (retryCount < maxRetryLimit) {
-         const retryDelay = Math.min(backoffBase * Math.pow(2, retryCount), maxBackoffDelay);
-         console.log(`Reconnecting in ${retryDelay / 1000} seconds... (Attempt ${retryCount + 1})`);
-         reconnectTimeout.current = setTimeout(() => {
-           setRetryCount((prev) => prev + 1);
-           connectWebSocket();
-         }, retryDelay);
-       } else {
-         console.error("Max reconnection attempts reached. Giving up.");
-       }
-     };
-   };
+
+         if (isLoggingOut) {
+            console.warn("Skipping WebSocket reconnection during logout.");
+            return;
+          }
+
+        // Attempt to reconnect
+        if (retryCount < maxRetryLimit) {
+          const retryDelay = Math.min(backoffBase * Math.pow(2, retryCount), maxBackoffDelay);
+          console.log(`Reconnecting in ${retryDelay / 1000} seconds... (Attempt ${retryCount + 1})`);
+          reconnectTimeout.current = setTimeout(() => {
+            setRetryCount((prev) => prev + 1);
+            connectWebSocket();
+          }, retryDelay);
+        } else {
+          console.error("Max reconnection attempts reached. Giving up.");
+        }
+      };
+    } else {
+      console.log("WebSocket is already connected, skipping reconnect.");
+    }}
+  };
+
 
 
 useEffect(() => {
-  connectWebSocket();
 
+       if (!isLoggingOut) {
+  connectWebSocket();
+}
   return () => {
     // Cleanup on component unmount
     console.log("Cleaning up WebSocket resources...");
@@ -131,23 +155,21 @@ useEffect(() => {
     if (connectionTimeout.current) clearTimeout(connectionTimeout.current);
   };
 }, []);
+*/
 /*
  useEffect(() => {
     notifyFriendRequest(dispatch, username.route.params, notifications);
   }, [dispatch, username.route.params, notifications]);
 */
- const handleLogout = async () => {
+  const handleLogout = async () => {
     console.log("Starting logout process...");
     setIsLoggingOut(true);
 
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // Simulate logout process
-    console.log("Logout completed!");
+    closeWebSocket(); // Close WebSocket properly
 
- await logOut();
-  await new Promise((resolve) => setTimeout(resolve, 500));
-    setIsLoggingOut(false); // Hide the overlay after 2 seconds
-
-
+    await logOut();
+    setIsLoggingOut(false);
+    await new Promise((resolve) => setTimeout(resolve, 500));
   };
 
 useEffect(() => {

@@ -4,7 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { navigate } from '@/navigators/navigationHelper';
 
 const api = axios.create({
-  baseURL: 'http://172.20.10.2:3000',
+  //baseURL: 'http://172.20.10.2:3000',
+  baseURL: 'https://e9e3-2a04-cec0-105d-76e2-9932-f67a-e713-120f.ngrok-free.app',
   headers: {
     'Content-Type': 'application/json',
   },
