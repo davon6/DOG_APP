@@ -22,7 +22,7 @@ const App = (data) => {
     const [activeMenu, setActiveMenu] = useState(null);
     const [menuAnim] = useState(new Animated.Value(-width));
     const [newsFeedMenuOpen, setNewsFeedMenuOpen] = useState(false);
-    const notifications = useSelector((state: RootState) => state.notifications.list);
+    //const notifications = useSelector((state: RootState) => state.notifications.list);
     const dispatch = useDispatch(); // Use dispatch here
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const { users, loading } = useExampleLogic();
@@ -31,136 +31,34 @@ const App = (data) => {
 
 
  const username = data.route.params[0];
-  const { isConnected, closeWebSocket } = useWebSocket(
+  const { isConnected, closeWebSocket, friend } = useWebSocket(
     'wss://e9e3-2a04-cec0-105d-76e2-9932-f67a-e713-120f.ngrok-free.app',
     username
   );
-/*
-const ws = useRef(null);
-  const reconnectTimeout = useRef(null);
-  const heartbeatInterval = useRef(null);
-  const connectionTimeout = useRef(null);
+const [friends, setFriends] = useState(data.route.params[1] || {});
 
-  const [isConnected, setIsConnected] = useState(false);
-  const [retryCount, setRetryCount] = useState(0);
-
-  const username = data.route.params[0]; // Replace with your dynamic username or params
-  const maxRetryLimit = 5; // Max number of reconnection attempts
-  const backoffBase = 1000; // Initial delay for reconnection (in milliseconds)
-  const maxBackoffDelay = 30000; // Maximum delay between retries (30 seconds)
-
-
-
-
-
-  const connectWebSocket = () => {
-        if (isLoggingOut) {
-          console.warn("Skipping WebSocket connection during logout.");
-          return;
-        }
-    else{
-    if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
-      console.log("Attempting to connect to WebSocket...");
-
-      ws.current = new WebSocket(`wss://e9e3-2a04-cec0-105d-76e2-9932-f67a-e713-120f.ngrok-free.app?username=${username}`);
-
-      // Set connection timeout (10 seconds)
-      connectionTimeout.current = setTimeout(() => {
-        if (ws.current && ws.current.readyState !== WebSocket.OPEN) {
-          console.warn("Connection timeout reached, closing WebSocket.");
-          ws.current?.close(); // Use optional chaining to ensure ws.current exists
-        }
-      }, 10000);
-
-      ws.current.onopen = () => {
-        console.log("WebSocket connected");
-        setIsConnected(true);
-        setRetryCount(0);
-
-        // Clear connection timeout
-        clearTimeout(connectionTimeout.current);
-
-        // Start sending heartbeats every 15 seconds
-        heartbeatInterval.current = setInterval(() => {
-          if (ws.current && ws.current.readyState === WebSocket.OPEN) { // Guard check
-            ws.current.send(JSON.stringify({ type: "heartbeat" }));
-          } else {
-            console.warn("Cannot send heartbeat, WebSocket is not connected.");
-          }
-        }, 15000);
-      };
-
-      ws.current.onmessage = (event) => {
-        const receivedData = JSON.parse(event.data);
-        if (receivedData.notification) {
-          notifyFriendRequest(dispatch, data.route.params[0], [receivedData.notification]);
-        }
-      };
-
-      ws.current.onerror = (error) => {
-        console.error("WebSocket error occurred:", error);
-      };
-
-      ws.current.onclose = (event) => {
-        console.log(`WebSocket closed: Code ${event.code}, Reason: ${event.reason}`);
-
-         if (!isLoggingOut) {
-        setIsConnected(false);
-}else{   console.warn("Skipping WebSocket reconnection during logout.");
-                  return;}
-
-        // Clear intervals and timeouts
-        clearInterval(heartbeatInterval.current);
-        clearTimeout(connectionTimeout.current);
-
-
-         if (isLoggingOut) {
-            console.warn("Skipping WebSocket reconnection during logout.");
-            return;
-          }
-
-        // Attempt to reconnect
-        if (retryCount < maxRetryLimit) {
-          const retryDelay = Math.min(backoffBase * Math.pow(2, retryCount), maxBackoffDelay);
-          console.log(`Reconnecting in ${retryDelay / 1000} seconds... (Attempt ${retryCount + 1})`);
-          reconnectTimeout.current = setTimeout(() => {
-            setRetryCount((prev) => prev + 1);
-            connectWebSocket();
-          }, retryDelay);
-        } else {
-          console.error("Max reconnection attempts reached. Giving up.");
-        }
-      };
-    } else {
-      console.log("WebSocket is already connected, skipping reconnect.");
-    }}
-  };
-
-
+console.log("so this is the start"+ JSON.stringify(friends));
 
 useEffect(() => {
 
-       if (!isLoggingOut) {
-  connectWebSocket();
-}
-  return () => {
-    // Cleanup on component unmount
-    console.log("Cleaning up WebSocket resources...");
-    if (ws.current) {
-      ws.current.close();
-      ws.current = null;
-    }
-    if (reconnectTimeout.current) clearTimeout(reconnectTimeout.current);
-    if (heartbeatInterval.current) clearInterval(heartbeatInterval.current);
-    if (connectionTimeout.current) clearTimeout(connectionTimeout.current);
-  };
-}, []);
-*/
-/*
- useEffect(() => {
-    notifyFriendRequest(dispatch, username.route.params, notifications);
-  }, [dispatch, username.route.params, notifications]);
-*/
+  if (friend) {
+    setFriends((prevFriends) => {
+      // Avoid adding duplicates
+      const isDuplicate = prevFriends.some((f) => f.username === friend);
+      if (isDuplicate) return prevFriends;
+
+      // Add the new friend
+      return [...prevFriends, { username: friend }];
+    });
+    console.log("Updated friends: ", JSON.stringify({ friends }));
+  }
+}, [friend]);
+
+
+  var notifications = data.route.params[2];
+
+  if(notifications){notifyFriendRequest(dispatch, username,[notifications]);}
+
   const handleLogout = async () => {
     console.log("Starting logout process...");
     setIsLoggingOut(true);
@@ -169,9 +67,9 @@ useEffect(() => {
 
     await logOut();
     setIsLoggingOut(false);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+   // await new Promise((resolve) => setTimeout(resolve, 500));
   };
-
+/*
 useEffect(() => {
   if (data) {
 
@@ -183,8 +81,17 @@ useEffect(() => {
 
          console.log("and the friends --->"+JSON.stringify(data.route.params[1]));
   }
-}, [dispatch, data.route.params[0], notifications]);
 
+
+  if(friend){friends={
+                     ...friends,
+                     friend
+                   };
+
+               console.log(" the mess "+ JSON.stringify(friends))
+               };
+}, [dispatch, data.route.params[0], notifications]);
+*/
 
   useEffect(() => {
     const watchId = Geolocation.watchPosition(
@@ -254,7 +161,7 @@ useEffect(() => {
       </View>
 
     <SlidingMenu activeMenu={activeMenu} menuAnim={menuAnim} closeMenu={closeMenu} data={data.route.params} handleLogout={handleLogout}
-       triggerSignOutPopup={() => setShowSignOutPopup(true)} />
+       triggerSignOutPopup={() => setShowSignOutPopup(true)} friends={friends}  />
 
        <NewsFeedMenu isOpen={newsFeedMenuOpen} toggleMenu={toggleNewsFeedMenu}
         username={data.route.params[0]}  notifications={notifications} />
@@ -269,7 +176,7 @@ useEffect(() => {
     </View>
   );
 };
-// username={user.userName}
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

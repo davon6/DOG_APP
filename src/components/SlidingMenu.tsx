@@ -22,7 +22,7 @@ interface SlidingMenuProps {
   closeMenu: () => void;
 }
 
-const SlidingMenu: React.FC<SlidingMenuProps> = ({ activeMenu, menuAnim, closeMenu, data, handleLogout,    triggerSignOutPopup }) => {
+const SlidingMenu: React.FC<SlidingMenuProps> = ({ activeMenu, menuAnim, closeMenu, data, handleLogout,    triggerSignOutPopup, friends }) => {
 const [showNewChatPopup, setShowNewChatPopup] = useState(false);
 const [editableField, setEditableField] = useState(null); // Track which field is being edited
 const [tempValue, setTempValue] = useState(''); // Temporary value for editing
@@ -57,7 +57,7 @@ const [tempValue, setTempValue] = useState(''); // Temporary value for editing
       ))*/}
 
 
-        {
+        {/*
           data[1] && data[1].length > 0 ? (
             data[1].map((user) => (
               <TouchableOpacity
@@ -68,7 +68,20 @@ const [tempValue, setTempValue] = useState(''); // Temporary value for editing
                 <Text style={styles.buttonText}>{user.username}</Text>
               </TouchableOpacity>
             ))
-          ) : (
+          ) */
+          friends && friends.length > 0 ? (
+                      friends.map((user) => (
+                        <TouchableOpacity
+                          key={user.username}
+                          style={styles.userButton}
+                          onPress={() => onSelectUser(user.username)}
+                        >
+                          <Text style={styles.buttonText}>{user.username}</Text>
+                        </TouchableOpacity>
+                      ))
+
+  )
+          : (
             Alert.alert("No doggy friends yet, go on make some new.")
              //setShowNewChatPopup(false)
           )

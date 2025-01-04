@@ -17,7 +17,7 @@ import { UserContext } from '@/services/Context';
 import { useDispatch } from 'react-redux';
 import { fetchAllConversations, fetchUsers } from '@/redux/slices/messagingSlice';
 import { fetchNotifications } from '@/redux/slices/notificationsSlice';
-import { getFriends as getFri } from '@/api/apiService';
+import { getFriends as getFri, fetchNotificationsApi } from '@/api/apiService';
 
 const Welcome: React.FC = () => {
   const navigation = useNavigation();
@@ -123,7 +123,12 @@ fetch(`${API_URL}/test`)
 
       const friends = await getFri(username);
 
-      const data = [username, friends];
+console.log("arriving friends desserves a check + "+JSON.stringify(friends));
+
+      const notifications = await fetchNotificationsApi(username);
+
+
+      const data = [username, friends, notifications];
       navigation.navigate('Example', data);
       setUsername('');
       setPassword('');

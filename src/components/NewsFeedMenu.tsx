@@ -60,7 +60,7 @@ const NewsFeedMenu = ({ isOpen, toggleMenu, username, notifications }) => {
 
      {/* Display notifications */}
      <ScrollView style={styles.notificationList}>
-       {notifications.length === 0 ? (
+       {(notifications?.length ?? 0) === 0 ? (
          <Text style={styles.noNotifications}>No notifications yet.</Text>
        ) : (
          [...notifications]
