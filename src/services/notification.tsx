@@ -59,12 +59,13 @@ export const notifyFriendRequest = (
 ) => {
     console.log("notfication from ws "+JSON.stringify(notifications));
 
-  const unreadFriendRequests = notifications.filter(
 
+const unreadFriendRequests = Array.isArray(notifications)
+  ? notifications.filter(
+      (notification) => !notification.isRead && notification.type === "friend_request"
+    )
+  : [];
 
-
-    (notification) => !notification.isRead && notification.type === "friend_request"
-  );
 
   console.log("Filtered unread friend requests:", unreadFriendRequests);
 
