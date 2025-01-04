@@ -39,6 +39,7 @@ const [friend, setFriend] = useState(null);
             ws.current.send(JSON.stringify({ type: "heartbeat" }));
           } else {
             console.warn("Cannot send heartbeat, WebSocket is not connected.");
+
           }
         }, 15000);
       };

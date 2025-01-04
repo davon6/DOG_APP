@@ -101,7 +101,7 @@ export const notifyFriendRequest = (
       text1: "Multiple Friend Requests",
       text2: `You have ${count} friend requests. Go check them out.`,
       autoHide: true,
-      visibilityTime: 4000,
+      visibilityTime: 2000,
     });
   }
 };

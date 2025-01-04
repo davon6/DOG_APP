@@ -37,6 +37,18 @@ const App = (data) => {
   );
 const [friends, setFriends] = useState(data.route.params[1] || {});
 
+const [notifications, setNotifications] = useState(data.route.params[2] || {});
+
+
+useEffect(() => {
+  if (data) {
+
+      console.log("oving slooowly --->"+JSON.stringify(notifications));
+
+    // Call notifyFriendRequest only once
+    notifyFriendRequest(dispatch, data.route.params[0], notifications);}
+}, [dispatch, data.route.params[0], notifications]);
+
 console.log("so this is the start"+ JSON.stringify(friends));
 
 useEffect(() => {
@@ -54,10 +66,6 @@ useEffect(() => {
   }
 }, [friend]);
 
-
-  var notifications = data.route.params[2];
-
-  if(notifications){notifyFriendRequest(dispatch, username,[notifications]);}
 
   const handleLogout = async () => {
     console.log("Starting logout process...");

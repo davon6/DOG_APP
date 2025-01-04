@@ -19,6 +19,7 @@ import { fetchAllConversations, fetchUsers } from '@/redux/slices/messagingSlice
 import { fetchNotifications } from '@/redux/slices/notificationsSlice';
 import { getFriends as getFri, fetchNotificationsApi } from '@/api/apiService';
 
+
 const Welcome: React.FC = () => {
   const navigation = useNavigation();
   const [username, setUsername] = useState<string>('');
@@ -127,9 +128,11 @@ console.log("arriving friends desserves a check + "+JSON.stringify(friends));
 
       const notifications = await fetchNotificationsApi(username);
 
-
       const data = [username, friends, notifications];
       navigation.navigate('Example', data);
+
+     // if(notifications){console.log("yesss we have notifications !!");notifyFriendRequest(dispatch, username,data.route.params[2]);}
+
       setUsername('');
       setPassword('');
       // Adjust this based on your navigation structure
