@@ -12,6 +12,22 @@ interface SignUp_2ScreenProps {
   navigation: any;
 }
 
+// Helper function to validate password complexity
+const validatePassword = (password: string): string | null => {
+  if (password.length < 8) return 'Password must be at least 8 characters long.';
+  if (!/[A-Z]/.test(password)) return 'Password must include at least one uppercase letter.';
+  if (!/[a-z]/.test(password)) return 'Password must include at least one lowercase letter.';
+  if (!/[0-9]/.test(password)) return 'Password must include at least one digit.';
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) return 'Password must include at least one special character.';
+  return null;
+};
+
+// Helper function to validate email format
+const validateEmail = (email: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
 const SignUp_2Screen: React.FC<SignUp_2ScreenProps> = ({ navigation }) => {
   const [username, setUsername] = useState<string>('');
   const [email, setEmail] = useState<string>('');
@@ -23,6 +39,24 @@ const SignUp_2Screen: React.FC<SignUp_2ScreenProps> = ({ navigation }) => {
 
  const { user,updateUser } = useContext(UserContext);
   const handleSignUp = async () => {
+
+      if (!username || username.length < 2) {
+                setError('Username must be at least 2 characters long.');
+                return;
+              }
+
+             // Email validation
+              if (!validateEmail(email)) {
+                setError('Please enter a valid email address.');
+                return;
+              }
+
+              // Password validation
+              const passwordError = validatePassword(password);
+              if (passwordError) {
+                setError(passwordError);
+                return;
+              }
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -62,6 +96,14 @@ console.log("await axios.post('http://172.20.10.8:3000/api/users/signup'")
 
                      console.log("what is the matter-->"   +JSON.stringify(response));
 */
+
+console.log("whyyyy", JSON.stringify(response.status),JSON.stringify(response.data.message));
+
+
+if (response.status === 200) {
+   setError( response.data.message, '. Please choose another.');
+return;
+   }else
       if (response.status === 201) {
 
 
@@ -104,9 +146,11 @@ try {
       }
     } catch (error) {
 
-        console.log("signup error "+ error);
+       console.log("signup error "+ error+JSON.stringify(error));
 
-      setError('Something went wrong, please try again.');
+    //  setError('Something went wrong, please try again.');
+
+
     } finally {
       setLoading(false);
     }
