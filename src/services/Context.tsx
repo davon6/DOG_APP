@@ -7,6 +7,7 @@ interface User {
   dogColor: string;
   dogWeight: string;
   dogRace: string;
+  dogSex : number;
   userIcon: string | null;
   lastLocationLat: number | null;
   lastLocationLong: number | null;
@@ -39,6 +40,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
     dogColor: '',
     dogWeight: '',
     dogRace: '',
+    dogSex : '',
     userIcon: null,
     lastLocationLat: null,
     lastLocationLong: null,
@@ -61,6 +63,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       lastLocationLat: data.lastLocationLat,
       lastLocationLong: data.lastLocationLong,
       dogSize: data.dogSize,
+      dogSex : data.dogSex,
       dogAge: data.dogAge,
       dogPersonality: data.dogPersonality,
       dogHobbies: data.dogHobbies
@@ -74,6 +77,7 @@ export const UserProvider = ({ children }: UserProviderProps) => {
       dogColor: '',
       dogWeight: '',
       dogRace: '',
+      dogSex : '',
       userIcon: null,
       lastLocationLat: null,
       lastLocationLong: null,

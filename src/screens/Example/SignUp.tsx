@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
 import { View, TextInput, StyleSheet, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { Button, Snackbar, Avatar } from 'react-native-paper';
+import { Button, Snackbar, Avatar, Switch  } from 'react-native-paper';
 import { Picker } from '@react-native-picker/picker'; // Native Picker for dropdowns
 import { UserContext } from '@/services/Context';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -43,7 +43,7 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
   const [ageUnit, setAgeUnit] = useState<string>('month');
   const [size, setSize] = useState<string>('');
   const [personality, setPersonality] = useState<string>('');
-  const [selectedHobbies, setSelectedHobbies] = useState<string[]>([]);
+  const [selectedHobbies, setSelectedHobbies] = useState<number[]>([]);
   const [error, setError] = useState<string>('');
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [dog_name, setDog_name] = useState<string>('');
@@ -53,10 +53,21 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
   const weightOptions = Array.from({ length: 200 }, (_, i) => (i + 1).toString());
 
   const { user, updateUser } = useContext(UserContext);
+  const [dogSex, setDogSex] = useState<string>('Male');
+
+
+   const handleHobbyToggle = (index: number) => {
+            setSelectedHobbies((prev) =>
+              prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]
+            );
+          };
+
 
    const ageUnits = ['month', 'year'];
 
   const handleSignUp = () => {
+
+ const selectedHobbyNames = selectedHobbies.map(index => hobbies[index]);
 
        if (!dog_name || dog_name.length < 2) {
           setError('Dog name must be at least 2 characters long.');
@@ -67,13 +78,17 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
       return;
     }
 
+const sex = dogSex=="Male"? 1: 0;
+ const finalAge = ageUnit === 'year' ? age : age / 12;
+
     // Log the results for now
     console.log({
       dog_name,
+      sex,
       weight: `${weight} ${weightUnit}`,
       color,
       race,
-      age: `${age} ${ageUnit}`,
+      age: finalAge,
       size,
       personality,
       hobbies: selectedHobbies.join('; ')
@@ -85,7 +100,8 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
       dogWeight: `${weight} ${weightUnit}`,
       dogColor: color,
       dogRace: race,
-      dogAge: `${age} ${ageUnit}`,
+      dogSex: sex,
+      dogAge: finalAge,
       dogSize: size,
       dogPersonality: personality,
       dogHobbies: selectedHobbies.join('; ')
@@ -97,11 +113,15 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
     setError('');
   };
 
+   const handleSexToggle = () => {
+      setDogSex((prev) => (prev === 'Male' ? 'Female' : 'Male'));
+    };
+/*
   const handleHobbyToggle = (hobby: string) => {
     setSelectedHobbies((prev) =>
       prev.includes(hobby) ? prev.filter((h) => h !== hobby) : [...prev, hobby]
     );
-  };
+  };*/
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -127,6 +147,27 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
         style={styles.input}
       />
 
+        {/* Dog Sex Toggle */}
+            <View style={styles.fieldContainer}>
+
+              <View style={styles.switchContainer}>
+                <Icon
+                  name={dogSex === 'Male' ? 'mars' : 'venus'}
+                  size={24}
+                  color={dogSex === 'Male' ? '#4CAF50' : '#FFC0CB'}
+                  style={styles.icon}
+                />
+                <Switch
+                  value={dogSex === 'Male'}
+                  onValueChange={handleSexToggle}
+                  thumbColor={dogSex === 'Male' ? '#4CAF50' : '#FFC0CB'}
+                  trackColor={{ true: '#A5D6A7', false: '#FFCDD2' }}
+                   style={styles.sexSwitch}
+                />
+                <Text style={styles.menuText}>{dogSex}</Text>
+              </View>
+            </View>
+
       {/* Weight and Age on Same Row */}
       <View style={styles.weightAgeContainer}>
         {/* Weight Picker */}
@@ -145,49 +186,40 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
           />
         </View>
 
-        {/* Age Picker */}
-        <View style={styles.ageContainer}>
-          <Text style={styles.label}>Age</Text>
-          <WheelPicker
-            selectedItem={age - 1} // Use index for selected age
-            data={Array.from({ length: 20 }, (_, i) => (i + 1).toString())} // Age options (1-20)
-            onItemSelected={(index) => setAge(index + 1)} // Update state
-            style={styles.wheel}
-            itemTextSize={20} // Adjust text size
-            selectedItemTextSize={24} // Highlight selected item size
-            selectedItemTextColor="#FF4500" // Highlight color
-            indicatorColor="#FF4500" // Line color
-            itemTextColor="#000000" // Regular text color
-          />
-        </View>
-
-
-         {/* Age Unit Wheel */}
-                <View style={styles.ageContainer}>
-                  <Text style={styles.label}>Unit</Text>
-                  <WheelPicker
-                    selectedItem={ageUnits.indexOf(ageUnit)} // Use index for selected unit
-                    data={ageUnits} // Months or Years
-                    onItemSelected={(index) => setAgeUnit(ageUnits[index])} // Update unit
-                    style={styles.wheelUnit}
-                    itemTextSize={20} // Adjust text size
-                    selectedItemTextSize={24} // Highlight selected item size
-                    selectedItemTextColor="#FF4500" // Highlight color
-                    indicatorColor="#FF4500" // Line color
-                    itemTextColor="#000000" // Regular text color
-                  />
-                </View>
+      {/* Age Picker */}
+      <View style={styles.ageContainer}>
+        <Text style={styles.label}>Age</Text>
+        <WheelPicker
+          selectedItem={age - 1} // Adjusted index for selected item
+          data={Array.from({ length: 20 }, (_, i) => (i + 1).toString())} // Age options (1-20)
+          onItemSelected={(index) => setAge(index + 1)} // Adjusted index for selected age
+          style={styles.wheel}
+          itemTextSize={20} // Adjust text size
+          selectedItemTextSize={24} // Highlight selected item size
+          selectedItemTextColor="#FF4500" // Highlight color
+          indicatorColor="#FF4500" // Line color
+          itemTextColor="#000000" // Regular text color
+        />
       </View>
 
-      {/* Weight Unit Picker */}
-      <Picker
-        selectedValue={weightUnit}
-        onValueChange={(value) => setWeightUnit(value)}
-        style={styles.picker}
-      >
-        <Picker.Item label="sex lol" value="pounds" />
-        <Picker.Item label="kg" value="kg" />
-      </Picker>
+      {/* Age Unit Picker */}
+      <View style={styles.ageContainer}>
+        <Text style={styles.label}>Unit</Text>
+        <WheelPicker
+          selectedItem={ageUnits.indexOf(ageUnit)} // Ensure index is correct for unit
+          data={ageUnits} // Months or Years
+          onItemSelected={(index) => setAgeUnit(ageUnits[index])} // Update age unit
+          style={styles.wheelUnit}
+          itemTextSize={20} // Adjust text size
+          selectedItemTextSize={24} // Highlight selected item size
+          selectedItemTextColor="#FF4500" // Highlight color
+          indicatorColor="#FF4500" // Line color
+          itemTextColor="#000000" // Regular text color
+        />
+      </View>
+      </View>
+
+
 
       {/* Race Dropdown */}
       <Text style={styles.label}>Race</Text>
@@ -217,23 +249,25 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
       </Picker>
 
       {/* Hobbies/Activities Selection */}
-      <Text style={styles.label}>Hobbies/Activities</Text>
-      <View style={styles.hobbiesContainer}>
-      {hobbies.map((hobby) => (
-        <View key={hobby} style={styles.checkboxWrapper}>
-          <TouchableOpacity
-            style={styles.checkboxContainer}
-            onPress={() => handleHobbyToggle(hobby)}
-          >
-            <Icon
-              name={selectedHobbies.includes(hobby) ? 'check-circle' : 'circle-thin'}
-              size={24}
-              color={selectedHobbies.includes(hobby) ? '#6200ee' : 'gray'}
-            />
-            <Text style={styles.label}>{hobby}</Text>
-          </TouchableOpacity>
-        </View>
-      ))}
+
+   <Text style={styles.label}>Hobbies/Activities</Text>
+       <View style={styles.hobbiesContainer}>
+         {hobbies.map((hobby, index) => (
+           <View key={index} style={styles.checkboxWrapper}>
+             <TouchableOpacity
+               style={styles.checkboxContainer}
+               onPress={() => handleHobbyToggle(index)} // Pass index here
+             >
+               <Icon
+                 name={selectedHobbies.includes(index) ? 'check-circle' : 'circle-thin'}
+                 size={24}
+                 color={selectedHobbies.includes(index) ? '#6200ee' : 'gray'}
+               />
+               <Text style={styles.labelHobbies}>{hobby}</Text>
+             </TouchableOpacity>
+           </View>
+         ))}
+
 </View>
       {/* Error Message */}
       {error ? <Text style={styles.error}>{error}</Text> : null}
@@ -297,6 +331,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 5,
+    marginLeft: 10,
   },
   error: {
     color: 'red',
@@ -362,10 +397,17 @@ const styles = StyleSheet.create({
       backgroundColor: '#FFF0F5',
     },
     label: {
-      fontSize: 22,
+      fontSize: 21,
       fontWeight: 'bold',
       marginBottom: 5,
     },
+labelHobbies : {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 5,
+      marginLeft: 10,
+    },
+
     error: {
       color: 'red',
       textAlign: 'center',
@@ -408,6 +450,22 @@ const styles = StyleSheet.create({
       width: '48%', // Two columns, each takes roughly half the space
       marginBottom: 10, // Adds some spacing between rows
     },
+
+  fieldContainer: {
+    marginBottom: 20,
+  },
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  icon: {
+    marginRight: 10,
+  },
+  sexSwitch: {
+      transform: [{ scaleX: 1.5 }, { scaleY: 1.5 }],
+      height:100
+      },
 });
 
 export default SignUpScreen;

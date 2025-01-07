@@ -81,6 +81,7 @@ console.log("await axios.post('http://172.20.10.8:3000/api/users/signup'")
         dogColor:user.dogColor,
         dogWeight:user.dogWeight,
         dogRace:user.dogRace,
+        dogSex:user.dogSex,
         dogSize:user.dogSize,
         dogAge:user.dogAge,
         dogPersonality:user.dogPersonality,

@@ -1,6 +1,6 @@
 import React, { useEffect, useContext, useState } from 'react';
 import {Alert} from 'react-native';
-import { View, Text, StyleSheet, Animated, TouchableWithoutFeedback,TouchableOpacity, PanResponder, Dimensions, ScrollView, TextInput } from 'react-native';
+import { View, Text, StyleSheet, Animated, TouchableWithoutFeedback,TouchableOpacity, PanResponder, Dimensions, ScrollView, TextInput, Modal, Switch } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { setActiveConversation, startConversation } from '@/redux/slices/messagingSlice';
@@ -10,7 +10,7 @@ import MessagePopup from './MessagePopup';
 import NewDoggiePopup from './NewDoggiePopup';
 import {updateUser as updtU }  from '@/api/apiService';
 import { Toast } from 'react-native-toast-message';
-
+import { WheelPicker } from 'react-native-wheel-picker-android';
 
 import { selectConversationsList } from '@/redux/selectors';
 
@@ -23,12 +23,101 @@ interface SlidingMenuProps {
 }
 
 const SlidingMenu: React.FC<SlidingMenuProps> = ({ activeMenu, menuAnim, closeMenu, data, handleLogout,    triggerSignOutPopup, friends }) => {
-const [showNewChatPopup, setShowNewChatPopup] = useState(false);
-const [editableField, setEditableField] = useState(null); // Track which field is being edited
-const [tempValue, setTempValue] = useState(''); // Temporary value for editing
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const { user, updateUser, clearUser } = useContext(UserContext);
-      const dispatch = useDispatch();
+    const [showNewChatPopup, setShowNewChatPopup] = useState(false);
+    const [editableField, setEditableField] = useState(null); // Track which field is being edited
+    const [tempValue, setTempValue] = useState(''); // Temporary value for editing
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
+    const { user, updateUser, clearUser } = useContext(UserContext);
+    const dispatch = useDispatch();
+
+
+    const [showPicker, setShowPicker] = useState(false); // Controls wheel visibility
+    const [pickerType, setPickerType] = useState(''); // Type of the field being modified ('age' or 'weight')
+    const [age, setAge] = useState(5);
+    const [weight, setWeight] = useState(10);
+    const [selectedValue, setSelectedValue] = useState(5); // Temporary value for picker selection
+    const numbers = Array.from({ length: 100 }, (_, i) => i + 1);
+    const [ageUnit, setAgeUnit] = useState('years'); // Default to 'years'
+
+
+ const handleOpenPicker = (field) => {
+   setPickerType(field);
+   setShowPicker(true);
+ };
+
+const handleSelect = (value) => {
+  if (pickerType === 'dogAge') {
+    if (ageUnit === 'years') {
+      setAge(value); // Age in years
+    } else {
+      setAge(value / 12); // Convert to years if in months
+    }
+    setUser({ ...user, dogAge: value });
+  } else if (pickerType === 'dogWeight') {
+    setUser({ ...user, dogWeight: value });
+  }
+  setShowPicker(false);
+  setEditableField(null); // Close the editing mode
+};
+
+const handleAgeUnitChange = (unit) => {
+  setAgeUnit(unit);
+  setShowPicker(true); // Reopen the picker after unit change
+};
+
+
+const formatAge = (ageInYears) => {
+  // Convert decimal years into years and months
+  const years = Math.floor(ageInYears); // Extract whole years
+  const months = Math.round((ageInYears - years) * 12); // Convert remaining decimal to months
+
+  // Format based on the values
+  if (years > 0 && months > 0) {
+    return `${years} years and ${months} months`;
+  } else if (years > 0) {
+    return `${years} years`;
+  } else if (months > 0) {
+    return `${months} months`;
+  } else {
+    return `0 months`; // In case of no age data
+  }
+};
+
+
+
+const renderAgePicker = () => (
+  <View>
+    <Text>Age in {ageUnit}</Text>
+    <TouchableOpacity onPress={() => handleAgeUnitChange(ageUnit === 'years' ? 'months' : 'years')}>
+      <Text>{ageUnit === 'years' ? 'Switch to months' : 'Switch to years'}</Text>
+    </TouchableOpacity>
+  </View>
+);
+
+  // Handle when the user validates their selection (picker)
+// Handle when the user validates their selection (picker)
+const handleValidateSelection = () => {
+  console.log("Selected value: " + selectedValue);
+
+  if (pickerType === 'dogAge') {
+    // Handle the age unit conversion for months/years
+    const convertedValue = ageUnit === 'years' ? selectedValue : selectedValue / 12;
+    setTempValue(convertedValue.toFixed(1)); // Store as string with 1 decimal if necessary
+  } else if (pickerType === 'dogWeight') {
+    setTempValue(selectedValue.toString() + " pounds");
+  }
+
+  // Close the picker and save the value
+  setShowPicker(false);
+    setTimeout(() => handleSave(pickerType), 0)// Call handleSave to save the value after picker selection
+};
+
+
+
+
+    const handleBackdropPress = () => {
+         setShowPicker(false); // Close the picker if backdrop is pressed
+       };
 /*
   const handleLogout = async () => {
 
@@ -171,61 +260,92 @@ console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
 
     // Handle initiating edit mode
     const handleEdit = (field, value) => {
-      setEditableField(field);
-      setTempValue(value);
-    };
-
-    // Handle saving the edited value
-    const handleSave = async (field) => {
-
-
-console.log("soooooo do we update ?"+field+ tempValue);
-
-      const updatedUser = { ...user, [field]: tempValue };
-         updateUser(updatedUser);
-
-      // Send update to server
-      try {
-        const response = await updtU(user.userName,  { [field]: tempValue });
-        if (!response.success) throw new Error(result.message);
-      } catch (error) {
-        console.error('Error updating user:', error);
+      if (field === 'dogAge' || field === 'dogWeight') {
+        handleOpenPicker(field); // Directly open the picker for these fields
+      } else {
+        setEditableField(field); // Set the field to editable mode for other fields
+        setTempValue(value);
       }
-
-  console.log("no result but i may have worked");
-
-
-      setEditableField(null); // Exit edit mode
     };
 
-    const renderField = (label, field) => (
-      <View style={styles.fieldContainer}>
-        <Text style={styles.menuText}>{label}: </Text>
 
-        {/* Editable Field Logic */}
-        {editableField === field ? (
-          <TextInput
-            style={styles.inputField}
-            placeholder={user[field]}
-            value={tempValue}
-            onChangeText={setTempValue}
-          />
-        ) : (
-          <Text style={styles.menuText}>{user[field] || 'Not specified'}</Text>
-        )}
+const handleSave = async (field) => {
+  console.log("soooooo do we update? " + field + " " + tempValue);
 
-        {/* Edit Icon */}
-        {editableField === field ? (
-          <TouchableOpacity onPress={() => handleSave(field)}>
-            <Icon name="check" size={20} color="green" style={styles.icon} />
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity onPress={() => handleEdit(field, user[field])}>
-            <Icon name="pencil" size={20} color="blue" style={styles.icon} />
-          </TouchableOpacity>
-        )}
-      </View>
-    );
+  if (tempValue === undefined || tempValue === "") {
+    console.log("Invalid value to save");
+    return; // Prevent saving if the value is invalid
+  }
+
+  // Update user locally
+  const updatedUser = { ...user, [field]: tempValue };
+  updateUser(updatedUser); // Update the local state
+  console.log("Updated user locally:", updatedUser);
+
+  // Send update to the server
+  try {
+    const response = await updtU(user.userName, { [field]: tempValue });
+
+    if (response.success) {
+      console.log("Successfully updated user: " + field);
+    } else {
+      console.error("Error updating user:", response.message || "Unknown error");
+    }
+  } catch (error) {
+    console.error("Error updating user:", error);
+  }
+
+  setEditableField(null); // Exit edit mode after saving
+};
+
+
+
+// In the renderField method, check for dogAge and show picker accordingly
+const renderField = (label, field) => {
+  const isPickerField = field === 'dogAge' || field === 'dogWeight';
+  const isEditing = editableField === field;
+
+  return (
+    <View style={styles.fieldContainer}>
+      <Text style={styles.menuText}>{label}: </Text>
+
+      {isPickerField && isEditing ? (
+        // If editing age/weight, show the picker
+        <TouchableOpacity onPress={() => handleOpenPicker(field)}>
+          <Text style={[styles.menuText, { color: 'blue' }]}>
+            {field === 'dogAge' ? `${user[field]} ${ageUnit === 'years' ? 'years' : 'months'}` : `${user[field]} kg`}
+          </Text>
+        </TouchableOpacity>
+      ) : (
+        <Text style={styles.menuText}>
+          {field === 'dogAge' ? formatAge(user[field]) : user[field] || 'Not specified'}
+        </Text>
+      )}
+
+      {/* Edit/Save Icons */}
+      {isEditing ? (
+        <TextInput
+          style={styles.inputField}
+          placeholder={user[field]}
+          value={tempValue}
+          onChangeText={setTempValue}
+        />
+      ) : null}
+
+      {isEditing ? (
+        <TouchableOpacity onPress={() => handleSave(field)}>
+          <Icon name="check" size={20} color="green" style={styles.icon} />
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity onPress={() => handleEdit(field, user[field])}>
+          <Icon name="pencil" size={20} color="blue" style={styles.icon} />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+};
+
+
 
   const panResponder = PanResponder.create({
     onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dx < -20,
@@ -247,6 +367,17 @@ console.log("soooooo do we update ?"+field+ tempValue);
       }
     },
   });
+
+
+  useEffect(() => {
+    if (pickerType === 'dogAge') {
+      const formattedAge =
+        ageUnit === 'years' ? selectedValue : selectedValue / 12; // Convert months to years if needed
+      setTempValue(formattedAge);
+    } else if (pickerType === 'dogWeight') {
+      setTempValue(`${selectedValue} pounds`);
+    }
+  }, [selectedValue, pickerType, ageUnit]);
 
   const renderMenuContent = () => {
     // Convert conversations object to an array using Object.values()
@@ -388,12 +519,67 @@ case 'gear':
            />
          )}
 
+{showPicker && (
+  <Modal transparent={true} animationType="fade" visible={showPicker}>
+    <View style={styles.overlay}>
+      <TouchableOpacity
+        style={styles.overlayBackground}
+        onPress={handleBackdropPress}
+      />
+
+      <View style={styles.pickerContainer}>
+        {/* Display Current Unit (Months or Years) */}
+        {pickerType === 'dogAge' && (
+          <View style={styles.switchWrapper}>
+
+            {/* Toggle Unit */}
+            <View style={styles.switchContainer}>
+              <Text style={styles.toggleText}>
+                {ageUnit === 'years' ? 'Years' : 'Months'}
+              </Text>
+
+              <Switch
+                value={ageUnit === 'years'}
+                onValueChange={(value) => setAgeUnit(value ? 'years' : 'months')}
+                thumbColor={ageUnit === 'years' ? '#4CAF50' : '#FFC0CB'}
+                trackColor={{ true: '#A5D6A7', false: '#FFCDD2' }}
+                style={styles.ageSwitch}
+              />
+            </View>
+          </View>
+        )}
+
+        {/* Wheel Picker */}
+        <WheelPicker
+          selectedItem={selectedValue - 1} // Adjust for zero-based index
+          data={numbers.map(String)} // Numbers as strings
+          onItemSelected={(index) => setSelectedValue(index + 1)} // Update temporary value
+          style={styles.wheel}
+        />
+
+        {/* Validation Icon */}
+        <TouchableOpacity onPress={handleValidateSelection} style={styles.validateButton}>
+          <Icon name="check" size={24} color="green" />
+          <Text style={styles.validateText}>Confirm</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </Modal>
+)}
+
+
+
+
+
     </Animated.View>
   );
 
 
 
 };
+
+/*  { onPress={() => handleAgeUnitChange(ageUnit === 'years' ? 'months' : 'years')}
+                     style={styles.toggleButton}}*/
 
 const styles = StyleSheet.create({
   menu: {
@@ -540,6 +726,144 @@ headerText: {
     },
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+    backgroundColor: '#FFF',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 20,
+  },
+  /*
+  fieldContainer: {
+    marginBottom: 20,
+  },
+  */
+  label: {
+    fontSize: 18,
+  },
+  /*
+
+  buttonText: {
+    color: '#1E90FF',
+    fontSize: 16,
+    marginTop: 5,
+  },
+
+
+  */
+
+
+
+valueText: {
+  fontSize: 16,
+  flex: 2, // Allow value text to take more space
+  textAlign: 'left',
+  color: 'black', // Ensure the text color is visible
+},
+
+
+
+
+
+
+  overlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  overlayBackground: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)', // Grayed-out background
+  },
+  pickerContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    borderRadius: 10,
+    width: 300,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  wheel: {
+    width: 250,
+    height: 250,
+  },
+  validateButton: {
+    marginTop: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  validateText: {
+    marginLeft: 8,
+    fontSize: 16,
+    color: 'green',
+  },
+
+
+
+
+
+   pickerTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 10,
+    },
+    toggleButton: {
+      marginTop: 10,
+      padding: 10,
+      backgroundColor: '#f0f0f0',
+      borderRadius: 5,
+      alignItems: 'center',
+    },
+     toggleText: {
+        fontSize: 16,
+        marginRight: 10, // Add spacing between label and switch
+      },
+    validateButton: {
+      marginTop: 20,
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    validateText: {
+      marginLeft: 5,
+      fontSize: 16,
+      color: 'green',
+    },
+
+
+ageSwitch:{
+        transform: [{ scale: 1.2 }],
+    },
+
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center', // Center the switch and label horizontally
+    marginTop: 10,
+  },
 });
 
 export default SlidingMenu;
