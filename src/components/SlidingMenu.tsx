@@ -39,6 +39,8 @@ const SlidingMenu: React.FC<SlidingMenuProps> = ({ activeMenu, menuAnim, closeMe
     const numbers = Array.from({ length: 100 }, (_, i) => i + 1);
     const [ageUnit, setAgeUnit] = useState('years'); // Default to 'years'
 
+    const [selectedHobbies, setSelectedHobbies] = useState<number[]>([]);
+    const [modalVisible, setModalVisible] = useState(false);
 
  const handleOpenPicker = (field) => {
    setPickerType(field);
@@ -63,6 +65,14 @@ const handleSelect = (value) => {
 const handleAgeUnitChange = (unit) => {
   setAgeUnit(unit);
   setShowPicker(true); // Reopen the picker after unit change
+};
+
+const handleHobbyToggle = (index) => {
+  setSelectedHobbies((prevSelected) =>
+    prevSelected.includes(index)
+      ? prevSelected.filter((hobbyIndex) => hobbyIndex !== index) // Remove if already selected
+      : [...prevSelected, index] // Add if not selected
+  );
 };
 
 
@@ -206,6 +216,13 @@ const conversations = useSelector(selectConversationsList);
     setShowDoggiePopup(false);
   };
 
+const hobbies = [
+  'Playing Fetch', 'Running', 'Swimming', 'Digging', 'Chewing Toys',
+  'Tug-of-War', 'Hide and Seek', 'Agility Training', 'Playing with Balls',
+  'Socializing with Other Dogs', 'Hiking', 'Napping', 'Chasing Squirrels',
+  'Frisbee', 'Cuddling', 'Obstacle Courses', 'Exploring New Places',
+  'Learning Tricks', 'Playing in the Water', 'Walking on Leash'
+];
 
   const openPopup = (conversationId?: string, receiverUsername?: string) => {
 
@@ -262,13 +279,53 @@ console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
     const handleEdit = (field, value) => {
       if (field === 'dogAge' || field === 'dogWeight') {
         handleOpenPicker(field); // Directly open the picker for these fields
-      } else {
+      } else if (field === 'dogHobbies') {
+            setEditableField(field); // Set hobbies to editable mode
+            setSelectedHobbies(value ? value.split(';').map(Number) : []); // Parse existing hobbies into an array of numbers
+            setModalVisible(true); // Open hobbies modal
+          }else {
         setEditableField(field); // Set the field to editable mode for other fields
         setTempValue(value);
       }
     };
 
 
+const handleSave = async (field) => {
+  // Use the correct value for hobbies or other fields
+  const updatedValue = field === 'dogHobbies' ? selectedHobbies.join('; ') : tempValue;
+
+  // Check for invalid values
+  if (!updatedValue || updatedValue.trim() === "") {
+    console.log("Invalid value to save");
+    return; // Prevent saving if the value is invalid
+  }
+
+  console.log(`Saving field "${field}" with value: ${updatedValue}`);
+
+  // Update the user object locally
+  const updatedUser = { ...user, [field]: updatedValue };
+  updateUser(updatedUser); // Update the local state
+  console.log("Updated user locally:", updatedUser);
+
+  // Send the update to the server
+  try {
+    const response = await updtU(user.userName, { [field]: updatedValue });
+
+    if (response.success) {
+      console.log(`Successfully updated user: ${field}`);
+    } else {
+      console.error("Error updating user:", response.message || "Unknown error");
+    }
+  } catch (error) {
+    console.error("Error updating user:", error);
+  }
+
+  // Exit edit mode after saving
+  setEditableField(null);
+  setTempValue(''); // Reset temp value
+};
+
+/*
 const handleSave = async (field) => {
   console.log("soooooo do we update? " + field + " " + tempValue);
 
@@ -297,17 +354,27 @@ const handleSave = async (field) => {
 
   setEditableField(null); // Exit edit mode after saving
 };
-
+*/
 
 
 // In the renderField method, check for dogAge and show picker accordingly
-const renderField = (label, field) => {
+const renderField = ( field) => {
   const isPickerField = field === 'dogAge' || field === 'dogWeight';
   const isEditing = editableField === field;
 
+    const renderHobbies = (hobbiesString) => {
+      if (!hobbiesString) return 'No hobbies specified';
+      return hobbiesString
+        .split(';') // Split the string by semicolons
+        .map(index => hobbies[parseInt(index.trim(), 10)]) // Convert each index to an integer and map to the hobbies array
+        .filter(Boolean) // Remove invalid indices (e.g., out of range)
+        .join(', '); // Join the hobbies back into a readable string
+    };
+
+
   return (
     <View style={styles.fieldContainer}>
-      <Text style={styles.menuText}>{label}: </Text>
+
 
       {isPickerField && isEditing ? (
         // If editing age/weight, show the picker
@@ -318,7 +385,12 @@ const renderField = (label, field) => {
         </TouchableOpacity>
       ) : (
         <Text style={styles.menuText}>
-          {field === 'dogAge' ? formatAge(user[field]) : user[field] || 'Not specified'}
+          {field === 'dogHobbies'
+                       ? renderHobbies(user[field]) // Render hobbies if field is dogHobbies
+                       : field === 'dogAge'
+                         ? formatAge(user[field])
+                         : user[field] || 'Not specified'}
+
         </Text>
       )}
 
@@ -389,14 +461,14 @@ const renderField = (label, field) => {
                  <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 192, 203, 0.8)' }]}>
                    <Text style={styles.menuTitle}>Doggie Profile</Text>
                    {/*renderField('Username', 'userName')*/}
-                   {renderField('Doggy Name', 'dogName')}
-                    {renderField('Doggy Age', 'dogAge')}
-                   {renderField('Doggy Color', 'dogColor')}
-                   {renderField('Doggy Weight', 'dogWeight')}
-                   {renderField('Doggy Race', 'dogRace')}
-                   {renderField('Doggy Size', 'dogSize')}
-                   {renderField('Doggy Vibe', 'dogPersonality')}
-                   {renderField('Doggy Hobbies', 'dogHobbies')}
+                   {renderField( 'dogName')}
+                    {renderField( 'dogAge')}
+                   {renderField( 'dogColor')}
+                   {renderField( 'dogWeight')}
+                   {renderField('dogRace')}
+                   {renderField( 'dogSize')}
+                   {renderField('dogPersonality')}
+                   {renderField('dogHobbies')}
                  </View>
                );
       case 'msg':
@@ -566,6 +638,65 @@ case 'gear':
     </View>
   </Modal>
 )}
+
+<Modal
+  transparent={true}
+  animationType="fade"
+  visible={modalVisible}
+  onRequestClose={() => setModalVisible(false)} // Close modal on back button press
+>
+  <View style={styles.overlay}>
+    {/* Background Overlay */}
+    <TouchableOpacity
+      style={styles.overlayBackground}
+      onPress={() => setModalVisible(false)} // Close modal when tapping outside
+    />
+
+    {/* Popup Container */}
+    <View style={styles.modalContainer}>
+      <Text style={styles.modalTitle}>Select Hobbies</Text>
+
+      {/* Hobbies List */}
+      <ScrollView contentContainerStyle={styles.hobbiesList}>
+        {hobbies.map((hobby, index) => (
+          <TouchableOpacity
+            key={index}
+            style={[
+              styles.hobbyItem,
+              selectedHobbies.includes(index) && styles.hobbySelected,
+            ]}
+            onPress={() => handleHobbyToggle(index)} // Toggle hobby selection
+          >
+            <Icon
+              name={selectedHobbies.includes(index) ? 'check-circle' : 'circle-thin'}
+              size={24}
+              color={selectedHobbies.includes(index) ? '#6200ee' : 'gray'}
+            />
+            <Text style={styles.hobbyText}>{hobby}</Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+
+      {/* Confirm Button */}
+ <TouchableOpacity
+   style={styles.validateButton}
+   onPress={() => {
+     // Save hobbies to selectedHobbies
+     const updatedHobbies = selectedHobbies.join('; '); // Convert to string if needed
+     setTempValue(updatedHobbies); // Optionally update tempValue if needed for other purposes
+     setModalVisible(false); // Close the modal
+
+     // Update selectedHobbies state (this will trigger a UI re-render)
+     setSelectedHobbies(selectedHobbies);
+   }}
+ >
+   <Icon name="check" size={24} color="green" />
+   <Text style={styles.validateText}>Confirm</Text>
+ </TouchableOpacity>
+
+    </View>
+  </View>
+</Modal>
 
 
 
@@ -864,6 +995,78 @@ ageSwitch:{
     justifyContent: 'center', // Center the switch and label horizontally
     marginTop: 10,
   },
+
+
+
+
+
+
+
+
+
+
+    overlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+      justifyContent: 'center', // Center vertically
+      alignItems: 'center', // Center horizontally
+    },
+    overlayBackground: {
+      ...StyleSheet.absoluteFillObject, // Cover the entire screen
+    },
+    modalContainer: {
+      width: '80%',
+      backgroundColor: '#fff', // White background
+      borderRadius: 10,
+      padding: 20,
+      alignItems: 'center',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.25,
+      shadowRadius: 4,
+      elevation: 5, // Android shadow
+    },
+    modalTitle: {
+      fontSize: 18,
+      fontWeight: 'bold',
+      marginBottom: 10,
+    },
+    hobbiesList: {
+      alignItems: 'flex-start', // Align text to the left
+      paddingVertical: 10,
+    },
+    hobbyItem: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginBottom: 10,
+      padding: 10,
+      borderRadius: 5,
+      width: '100%',
+      backgroundColor: '#f9f9f9',
+    },
+    hobbySelected: {
+      backgroundColor: '#e6e6ff', // Highlight selected hobby
+    },
+    hobbyText: {
+      marginLeft: 10,
+      fontSize: 16,
+      color: '#333',
+    },
+    validateButton: {
+      marginTop: 20,
+      backgroundColor: '#4CAF50',
+      paddingHorizontal: 20,
+      paddingVertical: 10,
+      borderRadius: 5,
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    validateText: {
+      color: '#fff',
+      fontSize: 16,
+      fontWeight: 'bold',
+      marginLeft: 5,
+    },
 });
 
 export default SlidingMenu;
