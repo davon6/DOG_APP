@@ -32,7 +32,7 @@ const App = (data) => {
 
  const username = data.route.params[0];
   const { isConnected, closeWebSocket, friend } = useWebSocket(
-    'wss://e9e3-2a04-cec0-105d-76e2-9932-f67a-e713-120f.ngrok-free.app',
+    'wss://eabf-2a04-cec0-1003-a95b-85a4-3455-4d2f-66f0.ngrok-free.app',
     username
   );
 const [friends, setFriends] = useState(data.route.params[1] || {});

@@ -12,7 +12,7 @@ interface User {
   lastLocationLat: number | null;
   lastLocationLong: number | null;
   dogSize: string;
-  dogAge: string;
+  dogAge: number;
   dogPersonality: string;
   dogHobbies: string;
 }
