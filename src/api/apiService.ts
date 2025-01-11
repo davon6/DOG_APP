@@ -129,13 +129,13 @@ export const getFriendStatuses = async (username: string) => {
 
 
 // Fetch messages with pagination
-export const fetchMessages = async (conversationId: string, offset: number, limit: number) => {
+export const fetchMessages = async (conversationId: string, offset: number, limit: number, username:string) => {
 
 
 
   try {
     const response = await api.get(`/api/conversations/${conversationId}/messages`, {
-      params: { offset, limit },
+      params: { offset, limit, username },
     });
 
     return response; // { messages: Message[], hasMore: boolean }
@@ -327,6 +327,26 @@ export const signOut = async (username: string) => {
     return response.status;
   } catch (error) {
     console.error('Error fetching notifications:', error);
+    throw error;  // Propagate the error to be handled in the component
+  }
+};
+
+
+export const updateMessagesAsRead = async (conversationId: string) => {
+  try {
+    console.log("updateMessagesAsRead for conversationId:", conversationId);
+
+    // Send the username in the request body
+    const response = await api.post('/api/messages/markAsRead', {
+      conversationId
+    });
+
+    console.log("message marked as read");
+    console.log(JSON.stringify(response.data));
+
+    return response.data;
+  } catch (error) {
+    console.error('Error marked message  as read:', error);
     throw error;  // Propagate the error to be handled in the component
   }
 };

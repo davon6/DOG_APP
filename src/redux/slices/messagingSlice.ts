@@ -1,12 +1,13 @@
 // src/redux/slices/messagingSlice.ts
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, createAsyncThunk  } from '@reduxjs/toolkit';
 import { AppThunk } from '@/redux/store';
 import {
   getAllConversations as gAC,
   fetchUsrs as apiFetchUsers,
   startConversation as apiStartConversation,
   sendMessage as apiSendMessage,
-  fetchMessages as apiFetchMessages
+  fetchMessages as apiFetchMessages,
+  updateMessagesAsRead as updateMsgAsRead
 } from '@/api/apiService';
 import uuid from 'react-native-uuid';
 import * as messagingSelectors from '@/redux/selectors';
@@ -17,6 +18,7 @@ export interface Message {
   senderUsername: string;
   text: string;
   timestamp: string;
+   isRead: boolean;
 }
 
 export interface Conversation {
@@ -25,6 +27,7 @@ export interface Conversation {
   messages: string[];
   hasMore: boolean;
   otherUser: string;
+  hasUnread: boolean;
 }
 
 interface User {
@@ -49,6 +52,8 @@ const initialState: MessagingState = {
 const messagingSlice = createSlice({
   name: 'messaging',
   initialState,
+   messages: {}, // Messages keyed by conversationId
+      hasMore: {}, // Pagination data keyed by conversationId
   reducers: {
     setActiveConversation: (state, action: PayloadAction<string>) => {
 
@@ -56,11 +61,15 @@ const messagingSlice = createSlice({
 
       state.activeConversation = action.payload;
     },
-    setConversations: (state, action: PayloadAction<Conversation[]>) => {
-      action.payload.forEach(conv => {
-        state.conversations[conv.id] = conv;
-      });
-    },
+   setConversations: (state, action: PayloadAction<Conversation[]>) => {
+     action.payload.forEach(conv => {
+       const unreadMessages = conv.messages.some(msgId => !state.messages[msgId]?.isRead);
+       state.conversations[conv.id] = {
+         ...conv,
+         hasUnread: unreadMessages,
+       };
+     });
+   },
 
 addConversation: (state, action: PayloadAction<Conversation>) => {
   const conversation = action.payload;
@@ -105,6 +114,7 @@ addConversation: (state, action: PayloadAction<Conversation>) => {
           participants: [],
           messages: [],
           hasMore: true,
+          hasUnread: false,
         };
       }
 
@@ -115,6 +125,9 @@ addConversation: (state, action: PayloadAction<Conversation>) => {
         }
       });
 
+    const unreadMessages = state.conversations[conversationId].messages.some((msgId) => !state.messages[msgId]?.isRead);
+    state.conversations[conversationId].hasUnread = unreadMessages;
+
       state.conversations[conversationId].hasMore = hasMore;
     },
     addMessage: (state, action: PayloadAction<Message>) => {
@@ -122,6 +135,10 @@ addConversation: (state, action: PayloadAction<Conversation>) => {
       state.messages[message.id] = message;
       if (state.conversations[message.conversationId]) {
         state.conversations[message.conversationId].messages.push(message.id);
+
+        if (!message.isRead) {
+                  state.conversations[message.conversationId].hasUnread = true;
+                }
       }
     },
     setUsers: (state, action: PayloadAction<User[]>) => {
@@ -157,9 +174,37 @@ addConversation: (state, action: PayloadAction<Conversation>) => {
            messages: {},
            users: {},
          };
-       }
+       },
+  markMessagesAsRead: (state, action: PayloadAction<string>) => {
+        const conversationId = action.payload;
+        const conversation = state.conversations[conversationId];
 
+        if (conversation) {
+          // Mark all messages in the conversation as read
+          conversation.messages.forEach((msgId) => {
+            if (state.messages[msgId]) {
+              state.messages[msgId].isRead = true;
+            }
+          });
+
+          // Update `hasUnread` status for the conversation
+          conversation.hasUnread = false;
+        }
+      },
+updateHasUnread: (state, action: PayloadAction<{ conversationId: string; hasUnread: boolean }>) => {
+  const { conversationId, hasUnread } = action.payload;
+  if (state.conversations[conversationId]) {
+    state.conversations[conversationId].hasUnread = hasUnread;
+  }
+},
   },
+
+    extraReducers: (builder) => {
+      builder
+        .addCase(updateMessagesAsReadAPI.fulfilled, (state, action) => {
+          console.log('Messages marked as read in the backend.');
+        });
+    },
 });
 
 export const {
@@ -170,7 +215,8 @@ export const {
   addMessage,
   setUsers,
   updateMessageId,
-  logout
+  logout,
+  markMessagesAsRead
 } = messagingSlice.actions;
 
 export { messagingSelectors };
@@ -215,7 +261,7 @@ export const startConversation = (senderUsername: string, receiverUsername: stri
     dispatch(setActiveConversation(newConversation));
 
     // Optionally, pre-fetch messages for the new conversation
-    dispatch(fetchMessages(conversationId, 0, 20));
+    //dispatch(fetchMessages(conversationId, 0, 20, senderUsername));
 
     return conversationId;
   } catch (error) {
@@ -288,13 +334,16 @@ console.log("Local time with explicit time zone:", new Date().toLocaleString("en
   }
 };
 
-export const fetchMessages = (conversationId: string, offset: number, limit: number): AppThunk => async dispatch => {
+export const fetchMessages = (conversationId: string, offset: number, limit: number, username :string): AppThunk => async dispatch => {
   try {
-    const response = await apiFetchMessages(conversationId, offset, limit);
+
+      console.log("------------>>>>>>>>>>>>  fetchMessages now passing username ", username)
+
+    const response = await apiFetchMessages(conversationId, offset, limit,username);
     const { messages, hasMore } = response.data;
 
 
-    //console.log("checking hasMore in fetchMessage-->"+JSON.stringify(response.data));
+    console.log("------------->>>> checking isRead in fetchMessage-->"+JSON.stringify(response.data));
 
     dispatch(setMessages({ conversationId, messages, hasMore: hasMore ?? true }));
   } catch (error) {
@@ -313,7 +362,7 @@ export const fetchAllConversations = (username: string): AppThunk => async dispa
     if (Array.isArray(conversations)) {
       dispatch(setConversations(conversations));
       conversations.forEach(conv => {
-        dispatch(fetchMessages(conv.id, 0, 20));
+        dispatch(fetchMessages(conv.id, 0, 20, username));
       });
     } else {
       console.error("Error: API response does not contain conversations array.");
@@ -334,5 +383,17 @@ export const fetchUsers = (): AppThunk => async dispatch => {
     throw error;
   }
 };
+
+export const updateMessagesAsReadAPI = createAsyncThunk(
+  'messaging/updateMessagesAsRead', // Action name
+  async (conversationId: number) => { // Payload creator is an async function
+    try {
+      await updateMsgAsRead(conversationId);
+    } catch (error) {
+      console.error('Failed to mark messages as read', error);
+      throw error; // If the API call fails, it will be caught by Redux and trigger the `rejected` action
+    }
+  }
+);
 
 export default messagingSlice.reducer;

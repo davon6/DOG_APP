@@ -32,7 +32,7 @@ const SignOutPopup: React.FC<SignOutPopupProps> = ({ onClose, closeMenu, handleL
   const handleSignOut = async () => {
  var response = await signOutUser(name);
 
- console.log(response.status)
+ //console.log(response.status)
     handleLogout()
     onClose(); // Close the popup after the alert
   };

@@ -3,14 +3,13 @@ import {Alert} from 'react-native';
 import { View, Text, StyleSheet, Animated, TouchableWithoutFeedback,TouchableOpacity, PanResponder, Dimensions, ScrollView, TextInput, } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { setActiveConversation, startConversation } from '@/redux/slices/messagingSlice';
 import { RootState } from '@/redux/store';
 import { UserContext } from '@/services/Context';
-import MessagePopup from './MessagePopup';
 import NewDoggiePopup from './NewDoggiePopup';
 import {updateUser as updtU }  from '@/api/apiService';
 import { Toast } from 'react-native-toast-message';
 import DogProfile from './DogProfile';
+import Conversations from './Conversations';
 
 import { selectConversationsList } from '@/redux/selectors';
 
@@ -23,97 +22,14 @@ interface SlidingMenuProps {
 }
 
 const SlidingMenu: React.FC<SlidingMenuProps> = ({ activeMenu, menuAnim, closeMenu, data, handleLogout,    triggerSignOutPopup, friends }) => {
-    const [showNewChatPopup, setShowNewChatPopup] = useState(false);
     const [isLoggingOut, setIsLoggingOut] = useState(false);
     const { user, updateUser, clearUser } = useContext(UserContext);
     const dispatch = useDispatch();
-    const [showPopup, setShowPopup] = useState(false);
-    const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
-    const [newChatReceiver, setNewChatReceiver] = useState<string | null>(null);
-    const conversations = useSelector(selectConversationsList);
     const users = useSelector((state: RootState) => state.messaging.users);
-    const messages = useSelector((state: RootState) => state.messaging.messages);
     const [showDoggiePopup, setShowDoggiePopup] = useState(false);
-    
-
-  const NewChatPopup: React.FC<{ onClose: () => void; onSelectUser: (username: string) => void }> = ({ onClose, onSelectUser }) => (
-    <View style={styles.popupContainer}>
-      <View style={styles.popupHeader}>
-        <Text style={styles.headerText}>Start a New Chat</Text>
-        <TouchableOpacity onPress={onClose}>
-          <Icon name="close" size={24} color="black" />
-        </TouchableOpacity>
-      </View>
-
-        {
-          friends && friends.length > 0 ? (
-                      friends.map((user) => (
-                        <TouchableOpacity
-                          key={user.username}
-                          style={styles.userButton}
-                          onPress={() => onSelectUser(user.username)}
-                        >
-                          <Text style={styles.buttonText}>{user.username}</Text>
-                        </TouchableOpacity>
-                      ))
-
-  )
-          : (
-            Alert.alert("No doggy friends yet, go on make some new.")
-             //setShowNewChatPopup(false)
-          )
-        }
-    </View>
-  );
-
-  const handleSelectDoggie = (doggieName: string) => {
+    const handleSelectDoggie = (doggieName: string) => {
     console.log(`Selected doggie: ${doggieName}`);
     setShowDoggiePopup(false);
-  };
-
-  const openPopup = (conversationId?: string, receiverUsername?: string) => {
-
-    if (conversationId) {
-
-
-console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
-
-
-      dispatch(setActiveConversation({conversationId, otherUser:receiverUsername}));
-      setCurrentConversationId(conversationId);
-      setNewChatReceiver(receiverUsername);
-    } else if (receiverUsername) {
-
-        console.log("new conversation ID , no exisitn so ->"+receiverUsername);
-
-      setNewChatReceiver(receiverUsername);
-    }
-    setShowPopup(true);
-  };
-
-  const closePopup = () => {
-    setShowPopup(false);
-    setCurrentConversationId(null);
-    setNewChatReceiver(null);
-  };
-
-  useEffect(() => {
-    closePopup();
-  }, [activeMenu]);
-
-  const initiateConversation = async (username: string) => {
-    if (!showPopup) {
-      const conversationId = await dispatch(startConversation(user.userName, username));
-      if (conversationId) {
-
-          console.log("we always go to conversationId acquired");
-        openPopup(conversationId, username);
-		  setShowNewChatPopup(false);//DAVID
-      } else {
-	   setShowNewChatPopup(false);//DAVID
-        openPopup(undefined, username); // New chat mode
-      }
-    }
   };
 
   const panResponder = PanResponder.create({
@@ -139,67 +55,21 @@ console.log("READY TO DISPATCH SETACTIVE CONV->"+receiverUsername);
 
   const renderMenuContent = () => {
     // Convert conversations object to an array using Object.values()
-    const conversationList = Object.values(conversations);
 
     switch (activeMenu) {
 	     case 'user':
                return (
-
-                     <DogProfile
-                           user={user} updateUser={updateUser}
+                     <DogProfile user={user} updateUser={updateUser}
+                           style={[styles.menuContent, { backgroundColor: 'rgba(255, 192, 203, 0.8)' }]}
                          />
-
-               );
-      case 'msg':
-        return (
-          <View style={[styles.menuContent, { backgroundColor: 'rgba(173, 216, 230, 0.8)' }]}>
-            <Text style={styles.menuTitle}>Messages</Text>
-
-            <TouchableWithoutFeedback style={styles.startChatButton} onPress={() =>/* setShowPopup(true)*/setShowNewChatPopup(true)}>
-              <Text style={styles.buttonText}>Start New Chat</Text>
-            </TouchableWithoutFeedback>
-
-            {conversationList.length > 0 ? (
-              <ScrollView style={styles.conversationList}>
-                {conversationList.map((conversation) => {
-                  // Get the participant user ID(s) from the conversation
-                  const participantIds = conversation.participants.filter((id) => id !== user.id);
-
-//console.log("feeling lost "+ JSON.stringify(conversation));
-
-                  // Get the participant's name from the users state using the ID
-                  const participantName = conversation.otherUser || 'Unknown User';
-                // const participantName = conversation.participants[1] || 'Unknown User';
-
-                  // Get the last message for the conversation
-                  const lastMessageId = conversation.messages[conversation.messages.length - 1];
-                  const lastMessage = messages[lastMessageId];
-
-                  // Only display conversations that have messages
-                  if (!lastMessage) return null;
-
-                  return (
-                    <TouchableWithoutFeedback key={conversation.id} onPress={() => openPopup(conversation.id, participantName, )}>
-                      <View style={styles.conversationItem}>
-                        <View style={styles.chatHeader}>
-                          {/* Light blue background for "Chat with [User]" */}
-                          <Text style={styles.placeholderText}>Chat with {participantName}</Text>
-                        </View>
-
-                        {/* Last message text aligned to the left */}
-                        <Text style={styles.latestMessageText}>
-                          {lastMessage.text || 'No message text'}
-                        </Text>
-                      </View>
-                    </TouchableWithoutFeedback>
-                  );
-                })}
-              </ScrollView>
-            ) : (
-              <Text style={styles.noConversationText}>No conversations yet</Text>
-            )}
-          </View>
-        );
+                    );
+          case 'msg':
+            return (
+                <Conversations
+                    user={user}
+                    friends={friends}
+                  />
+            );
    case 'search':
         return (
           <View style={[styles.menuContent, { backgroundColor: 'rgba(144, 238, 144, 0.8)' }]}>
@@ -246,45 +116,26 @@ case 'gear':
   return (
     <Animated.View style={[styles.menu, { transform: [{ translateX: menuAnim }] }]} {...panResponder.panHandlers}>
       {renderMenuContent()}
-      {showPopup && (
-        <MessagePopup
-          conversationId={currentConversationId || undefined}
-          senderUsername={user.userName}
-          receiverUsername={newChatReceiver || undefined}
-          onClose={closePopup}
-        />
-      )}
-	   {showNewChatPopup && (
-         <NewChatPopup
-           onClose={() => setShowNewChatPopup(false)}
-           onSelectUser={(username) => initiateConversation(username)}
-         />
-       )}
 
          {showDoggiePopup && (
            <NewDoggiePopup
              onClose={() => setShowDoggiePopup(false)}
              onSelectDoggie={handleSelectDoggie}
              userName={user.userName}
-
            />
          )}
-
 
     </Animated.View>
   );
 
-
-
 };
-
 const styles = StyleSheet.create({
   menu: {
     position: 'absolute',
     top: 0,
     bottom: 0,
     width: '65%',
-    backgroundColor: 'rgba(255, 255, 255, 0.9)', // Default white background with slight opacity
+    backgroundColor: 'rgba(255, 255, 255, 0.1)', // Default white background with slight opacity
     zIndex: 1000,
   },
   menuContent: {
@@ -315,29 +166,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
   },
-  conversationItem: {
-    backgroundColor: '#ADD8E6',
-    padding: 12,
-    borderRadius: 8,
-    marginVertical: 8,
-    borderWidth: 1,
-    borderColor: '#fff',
-  },
-  placeholderText: {
-    color: '#333',
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  latestMessageText: {
-    color: '#555',
-    fontSize: 14,
-    marginTop: 5,
-  },
-  noConversationText: {
-    fontSize: 16,
-    color: '#333',
-    textAlign: 'center',
-  },
   buttonRow: {
     flexDirection: 'row',
     justifyContent: 'space-evenly',
@@ -354,34 +182,6 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
-  },
-  popupContainer: {
-    position: 'absolute',
-    top: '10%',
-    left: '5%',
-    width: '90%',
-    height: '80%',
-    backgroundColor: 'white',
-    borderRadius: 15,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 10,
-    zIndex: 2000,
-  },
-  popupHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  userButton: {
-    backgroundColor: '#87CEEB',
-    padding: 12,
-    borderRadius: 8,
-    marginVertical: 5,
   },
 });
 

@@ -163,12 +163,12 @@ const handleValidateSelection = () => {
      }
 */
 
-     console.log(`2Saving field "${field}" with value: ${updatedValue}`);
+     //console.log(`2Saving field "${field}" with value: ${updatedValue}`);
 
      // Update the user object locally
      const updatedUser = { ...user, [field]: updatedValue };
 
-       console.log(`3Saving field "${field}" with value: ${updatedValue}`);
+     //  console.log(`3Saving field "${field}" with value: ${updatedValue}`);
      updateUser(updatedUser); // Update the local state
 
 
@@ -256,12 +256,11 @@ const handleValidateSelection = () => {
 
 useEffect(() => {
 
-    console.log("so indeed sekected vlaue was shaken"+pickerType+"  "+ageUnit+"  "+selectedValue);
 
     if (pickerType === 'dogAge') {
       const formattedAge =
         ageUnit === 'years' ? selectedValue : selectedValue / 12; // Convert months to years if needed
-      console.log("so indeed -----------------> formattedAge"+formattedAge);
+      //console.log("so indeed -----------    ------> formattedAge"+formattedAge);
 
 
       setTempValue(formattedAge);
@@ -272,6 +271,13 @@ useEffect(() => {
 
   return (
     <View>
+
+    <View onLayout={(event) => {
+      const { x, y, width, height } = event.nativeEvent.layout;
+      console.log('Layout of component:', { x, y, width, height });
+    }}>
+      <Text>Somesss Content</Text>
+    </View>
 
 
        <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 192, 203, 0.8)' }]}>
@@ -285,28 +291,33 @@ useEffect(() => {
                         {renderField( 'dogSize')}
                         {renderField('dogPersonality')}
                         {renderField('dogHobbies')}
+
+                            <View onLayout={(event) => {
+                              const { x, y, width, height } = event.nativeEvent.layout;
+                              console.log('Layout of component:', { x, y, width, height });
+                            }}>
+                              <Text>Some Contentsssssssssssssssssssssssss</Text>
+                            </View>
                       </View>
 
       {/* Hobbies */}
       <TouchableOpacity onPress={() => setModalVisible(true)}>
-        <Text>Hobbies:</Text>
-        <Text>
-          {selectedHobbies.map((index) => hobbies[index]).join(', ') ||
-            'No hobbies specified'}
-        </Text>
-      </TouchableOpacity>
+
+           </TouchableOpacity>
 
       {modalVisible && (
-        <HobbiesModal
-          hobbies={hobbies}
-          selectedHobbies={selectedHobbies}
-          handleHobbyToggle={handleHobbyToggle}
-          setModalVisible={setModalVisible}
-          setSelectedHobbies={setSelectedHobbies}
-        />
-      )}
+              <HobbiesModal
+                hobbies={hobbies}
+                selectedHobbies={selectedHobbies}
+                handleHobbyToggle={handleHobbyToggle}
+                setModalVisible={setModalVisible}
+                setSelectedHobbies={setSelectedHobbies}
+              />
+            )}
 
-  <Animated.View style={styles.menu} >
+
+
+  <Animated.View style={[styles.menu, { flex: 1 }]}>
 {showPicker && (
   <Modal transparent={true} animationType="fade" visible={showPicker}>
     <View style={styles.overlay}>
@@ -355,6 +366,8 @@ useEffect(() => {
   </Modal>
 )}
     </Animated.View>
+
+
     </View>
   );
 };
@@ -372,6 +385,7 @@ const styles = StyleSheet.create({
         bottom: 0,
         backgroundColor: 'rgba(0, 0, 0, 0.5)', // Grayed-out background
     	 ...StyleSheet.absoluteFillObject,
+    	 flex:1
       },
  pickerContainer: {
     backgroundColor: 'white',
@@ -454,6 +468,7 @@ ageSwitch:{
     shadowRadius: 5,
     elevation: 10,
     zIndex: 2000,
+    flex: 1
   },
   popupHeader: {
     flexDirection: 'row',
@@ -471,21 +486,23 @@ ageSwitch:{
     textAlign: 'center',
   },
 
-  overlay: {
-        flex: 1,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
-        justifyContent: 'center', // Center vertically
-        alignItems: 'center', // Center horizontally
-      },
+overlay: {
+  flex: 1,
+  backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
+  justifyContent: 'center', // Center vertically
+  alignItems: 'center', // Center horizontally
+},
 
     menu: {
-      position: 'absolute',
-      top: 0,
-      bottom: 0,
-      width: '65%',
-      backgroundColor: 'rgba(255, 255, 255, 0.02)',
+
+      backgroundColor: 'rgba(255, 192, 203, 0.8)',
       zIndex: 1000,
+
     },
+  menuContent: {
+
+    justifyContent: 'space-evenly',
+  },
 
  menuTitle: {
     fontSize: 26,
@@ -505,6 +522,7 @@ ageSwitch:{
    wheel: {
       width: 250,
       height: 250,
+
     },
 });
 

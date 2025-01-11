@@ -16,7 +16,10 @@ import {
   sendMessage,
   fetchMessages,
   startConversation,
+  markMessagesAsRead,
+  updateMessagesAsReadAPI
 } from '@/redux/slices/messagingSlice';
+import { RootState } from '@/redux/store';
 //msgSliceTest
 
 import { selectMessagesForConversation, selectHasMoreForConversation } from '@/redux/selectorsTest';
@@ -46,12 +49,13 @@ const MessagePopup: React.FC<MessagePopupProps> = ({
   // Use normalized selector for messages
 const messagesSelector = useMemo(() => selectMessagesForConversation(conversationId), [conversationId]);
 const messages = useSelector(messagesSelector);
+
 /*
 useEffect(() => {
-  console.log('Messages:', messages);
+  console.log('------------------->>>>>>>>>>>>>>>>>>Messages:', messages);
 }, [messages]);
-
 */
+
 const hasMore = useSelector((state) =>
   conversationId
     ? selectHasMoreForConversation(conversationId)(state)
@@ -101,7 +105,10 @@ const handleLoadMore = async () => {
   if (hasMore && !loadingMore) {
     setLoadingMore(true);
     try {
-      await dispatch(fetchMessages(conversationId || '', messages.length, 20));
+
+    console.log("-------------<<<<<<< yes here >>>>>>>-------------")
+
+      await dispatch(fetchMessages(conversationId || '', messages.length, 20,senderUsername ));
     } catch (error) {
       console.error('Error loading more messages:', error);
       Alert.alert('Failed to load more messages');
@@ -120,17 +127,27 @@ const handleLoadMore = async () => {
   ));
   */
 
-  const MessageItem = React.memo(({ text, timestamp, isOwnMessage }) => (
-    <View
-      style={[
-        styles.messageContainer,
-        isOwnMessage ? styles.ownMessage : styles.otherMessage,
-      ]}
-    >
-      <Text style={styles.messageText}>{text}</Text>
-      <Text style={styles.timestampText}>{new Date(timestamp).toLocaleTimeString()}</Text>
-    </View>
-  ));
+ const MessageItem = React.memo(({ text, timestamp, isOwnMessage, isRead }) => (
+   <View
+     style={[
+       styles.messageContainer,
+       isOwnMessage ? styles.ownMessage : styles.otherMessage,
+     ]}
+   >
+     <Text
+       style={[
+         styles.messageText,
+        /* !isRead && { fontWeight: 'bold' }, */// Bold if the message is unread
+       ]}
+     >
+       {text}
+     </Text>
+     <Text style={styles.timestampText}>
+       {new Date(timestamp).toLocaleTimeString()}
+     </Text>
+   </View>
+ ));
+
 
 
   const renderFooter = () => {
@@ -141,6 +158,27 @@ const handleLoadMore = async () => {
       </View>
     );
   };
+/*
+   useEffect(() => {
+      if (conversationId && messages.some((msg) => !msg.isRead)) {
+       // Step 1: Update the local state in Redux
+       dispatch(markMessagesAsRead(conversationId));
+
+       // Step 2: Dispatch the API call to update the backend
+       dispatch(updateMessagesAsReadAPI(conversationId));
+     }
+   }, [conversationId, messages, dispatch]);
+*/
+useEffect(() => {
+  if (conversationId && messages.some(msg => !msg.isRead)) {
+    dispatch(markMessagesAsRead(conversationId));
+    // Optional: Update hasUnread in the Redux state
+    dispatch({
+      type: 'messaging/updateHasUnread', // Add this action in your slice
+      payload: { conversationId, hasUnread: false },
+    });
+  }
+}, [conversationId, messages, dispatch]);
 
   return (
     <View style={styles.popupContainer}>
@@ -179,6 +217,7 @@ const handleLoadMore = async () => {
                 text={item.text}
                 timestamp={item.timestamp}
                 isOwnMessage={item.senderUsername === senderUsername}
+                isRead={item.isRead}
               />
             )}
 

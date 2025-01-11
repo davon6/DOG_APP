@@ -10,7 +10,7 @@ const NewsFeedMenu = ({ isOpen, toggleMenu, username /*, notifications*/ }) => {
 
     const notifications = useSelector((state) => state.notifications.list); // Subscribe to Redux notifications
 
-  console.log("jesus where are notifcation"+JSON.stringify(notifications));
+ // console.log("jesus where are notifcation"+JSON.stringify(notifications));
 
   const [menuAnim] = useState(new Animated.Value(width));
   const MENU_WIDTH = 300; // Define the open menu width
@@ -49,7 +49,7 @@ const NewsFeedMenu = ({ isOpen, toggleMenu, username /*, notifications*/ }) => {
         : notificationTemplates.friend_declined.replace('{demanding_user}', notification.relatedUsername);
 
 
-console.log("so everything is for the best no ?"+notificationId, response, newText, username,   notification.relatedUsername);
+//console.log("so everything is for the best no ?"+notificationId, response, newText, username,   notification.relatedUsername);
 
     dispatch(updateNotificationResponse({ notificationId, response, newText, username,  relatedUsername: notification.relatedUsername }));
   };

@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 
 const LogOut = ({ isLoggingOut }: { isLoggingOut: boolean }) => {
 
-          console.log("in logout componenet");
+       //   console.log("in logout componenet");
 
   if (!isLoggingOut) return null; // If not logging out, don't render anything
 

@@ -56,11 +56,11 @@ const NewDoggiePopup: React.FC<NewDoggiePopupProps> = ({ onClose, onSelectDoggie
       setError(null);
       try {
 
-          console.log("how is it here fetchFriendStatuses "+userName);
+         // console.log("how is it here fetchFriendStatuses "+userName);
 
         const data = await getUsersFriendshipStatus(userName);  // Get friend statuses for a specific user
 
-       console.log("here we goooo"+ JSON.stringify(data));
+       //console.log("here we goooo"+ JSON.stringify(data));
 
         setFriendStatuses(data);  // Set the response data to the state
       } catch (err) {
