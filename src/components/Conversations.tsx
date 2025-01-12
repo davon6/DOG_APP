@@ -17,6 +17,8 @@ const Conversations: React.FC<ConversationsProps> = ({ user, friends }) => {
   const conversations = useSelector(selectConversationsList);
   const messages = useSelector((state: RootState) => state.messaging.messages);
 
+//console.log("jesssssuuuuusssssss"+JSON.stringify(messages));
+
   const [showNewChatPopup, setShowNewChatPopup] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
@@ -97,7 +99,13 @@ const Conversations: React.FC<ConversationsProps> = ({ user, friends }) => {
 
       {conversationList.length > 0 ? (
         <ScrollView style={styles.conversationList}>
-          {conversationList.map((conversation) => {
+           {conversationList
+               .filter((conversation) =>
+                  Array.isArray(conversation.messages) && // Ensure it's an array
+                  conversation.messages.length > 0 && // Ensure the array is not empty
+                  conversation.messages.some((msg) => msg !== undefined)
+                  )
+                .map((conversation) => {
             const participantName = conversation.otherUser || 'Unknown User';
             const lastMessageId = conversation.messages[conversation.messages.length - 1];
              const lastMessage = conversation.messages

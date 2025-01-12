@@ -48,7 +48,7 @@ fetch(`${API_URL}/test`)
     if (password) {
       const timeout = setTimeout(() => {
         handleSubmit();
-      }, 700);
+      }, 1300);
       setTypingTimeout(timeout);
     }
   }, [password]);

@@ -208,23 +208,24 @@ dispatch(markMessagesAsRead(conversationId));
       ) : (
         <FlatList
         ref={flatListRef}
-          data={sortedMessages}
-          keyExtractor={(item) => item.id.toString()}
-
+            data={sortedMessages || []} // Ensure data is always an array
+            keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
           /* same works well !
           renderItem={({ item }) => (
             <MessageItem item={item} isOwnMessage={item.senderUsername === senderUsername} />
           )}
           */
            // When passing data:
-            renderItem={({ item }) => (
+          renderItem={({ item }) =>
+            item ? (
               <MessageItem
                 text={item.text}
                 timestamp={item.timestamp}
                 isOwnMessage={item.senderUsername === senderUsername}
                 isRead={item.isRead}
               />
-            )}
+            ) : null // Safeguard: If item is undefined or null, render nothing
+          }
 
 
           contentContainerStyle={styles.messagesContainer}

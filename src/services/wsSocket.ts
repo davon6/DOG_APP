@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react';
-import { notifyFriendRequest } from "@/services/notification";
+import { notifyFriendRequest,notifyEvent } from "@/services/notification";
 import { useSelector, useDispatch } from 'react-redux';
 
 export const useWebSocket = (url, username, maxRetryLimit = 5) => {
@@ -47,15 +47,32 @@ const [friend, setFriend] = useState(null);
       ws.current.onmessage = (event) => {
         console.log("WebSocket message received:", event.data);
          const receivedData = JSON.parse(event.data);
-          if (receivedData.notification) {
+        /*  if (receivedData.notification) {
             notifyFriendRequest(dispatch, username,[receivedData.notification]);
-          }
+          }*/
         if (receivedData.username) {
             console.log("omg here is a new firend")
                      console.log("omg here is a new firend"+JSON.stringify(receivedData));
                 setFriend(receivedData.username);  // Update friend state with new friend
               }
-      };
+
+
+   if (receivedData.notification) {
+      const notification = receivedData.notification;
+
+      switch (notification.type) {
+        case "friend_request":
+          notifyFriendRequest(dispatch, username, [notification]);
+          break;
+        case "msg":
+          notifyEvent(dispatch, username, [notification]);
+          break;
+        default:
+          console.warn(`Unhandled notification type: ${notification.type}`);
+      }
+    }
+  };
+
 
       ws.current.onerror = (error) => {
         console.error("WebSocket error:", error);

@@ -2,20 +2,22 @@ import React from "react";
 import { View, Text, TouchableOpacity, Alert } from "react-native";
 import Toast from "react-native-toast-message";
 import { Dispatch } from "redux";
-import { updateNotificationResponse } from "@/redux/slices/notificationsSlice";
 import notificationTemplates from './notifications.json';
+
 // TypeScript Interfaces
 interface Notification {
   id: string;
   type: string;
   isRead: boolean;
   relatedUsername: string;
+  text?: string; // Optional for msg type
 }
 
 interface ToastProps {
   sender: string;
-  onAccept: () => void;
-  onDecline: () => void;
+  onAccept?: () => void; // Optional, not used for msg type
+  onDecline?: () => void; // Optional, not used for msg type
+  onClick?: () => void; // Optional for msg click handling
 }
 
 // Handle Friend Request Response
@@ -31,22 +33,22 @@ const handleFriendRequestResponse = (
     }.`
   );
 
-console.log("just checking -->"+username);
-let newText =
-          response === 'accept'
-            ? notificationTemplates.friend_accepted.replace('{demanding_user}', notification.relatedUsername)
-            : notificationTemplates.friend_declined.replace('{demanding_user}', notification.relatedUsername);
+  let newText =
+    response === "accept"
+      ? notificationTemplates.friend_accepted.replace('{demanding_user}', notification.relatedUsername)
+      : notificationTemplates.friend_declined.replace('{demanding_user}', notification.relatedUsername);
 
-  // Dispatch action
-  dispatch(
-    updateNotificationResponse({
+  // Dispatch action (example: update state for friend requests)
+  dispatch({
+    type: 'UPDATE_NOTIFICATION_RESPONSE',
+    payload: {
       notificationId: notification.id,
       response,
-      newText: newText,
+      newText,
       username,
       relatedUsername: notification.relatedUsername,
-    })
-  );
+    },
+  });
 
   Toast.hide(); // Hide the toast
 };
@@ -57,19 +59,13 @@ export const notifyFriendRequest = (
   username: string,
   notifications: Notification[]
 ) => {
-    console.log("notfication from ws "+JSON.stringify(notifications));
+  console.log("Friend request notifications:", notifications);
 
-
-const unreadFriendRequests = Array.isArray(notifications)
-  ? notifications.filter(
-      (notification) => !notification.isRead && notification.type === "friend_request"
-    )
-  : [];
-
-
-  console.log("Filtered unread friend requests:", unreadFriendRequests);
-
-  console.log("has name gobe thru ", username);
+  const unreadFriendRequests = Array.isArray(notifications)
+    ? notifications.filter(
+        (notification) => !notification.isRead && notification.type === "friend_request"
+      )
+    : [];
 
   if (unreadFriendRequests.length === 0) {
     console.log("No unread friend requests.");
@@ -85,8 +81,10 @@ const unreadFriendRequests = Array.isArray(notifications)
       text2: `${notification.relatedUsername} wants to connect with you!`,
       props: {
         sender: notification.relatedUsername,
-        onAccept: () => handleFriendRequestResponse(dispatch, notification, "accept", username),
-        onDecline: () => handleFriendRequestResponse(dispatch, notification, "decline", username),
+        onAccept: () =>
+          handleFriendRequestResponse(dispatch, notification, "accept", username),
+        onDecline: () =>
+          handleFriendRequestResponse(dispatch, notification, "decline", username),
       },
       autoHide: false,
       visibilityTime: 0,
@@ -107,9 +105,49 @@ const unreadFriendRequests = Array.isArray(notifications)
   }
 };
 
+// Notify Event (for messages or other notification types)
+export const notifyEvent = (
+  dispatch: Dispatch,
+  username: string,
+  notifications: Notification[]
+) => {
+  console.log("General event notifications:", notifications);
+
+  const messageNotifications = Array.isArray(notifications)
+    ? notifications.filter(
+        (notification) => !notification.isRead && notification.type === "msg"
+      )
+    : [];   
+
+  messageNotifications.forEach((notification) => {
+    Toast.show({
+      type: "custom_message",
+      position: "top",
+      text1: `New Message from ${notification.senderUsername}`,
+      text2: `${notification.text}`,
+      props: {
+        sender: notification.relatedUsername,
+        onClick: () => {
+          Alert.alert("Opening Chat", `Chat with ${notification.senderUsername}`);
+        },
+      },
+      autoHide: false,
+      visibilityTime: 0,
+    });
+  });
+};
+
 // Toast Config
 export const toastConfig = {
-  custom_friend_request: ({ text1, text2, props }: { text1: string; text2: string; props: ToastProps }) => (
+  custom_friend_request: ({
+    text1,
+    text2,
+    props,
+  }: {
+    text1: string;
+    text2: string;
+    props: ToastProps;
+  }) => (
     <View style={{ padding: 15, backgroundColor: "#fff", borderRadius: 10 }}>
       <Text style={{ fontWeight: "bold" }}>{text1}</Text>
       <Text style={{ marginBottom: 10 }}>{text2}</Text>
@@ -128,6 +166,23 @@ export const toastConfig = {
         </TouchableOpacity>
       </View>
     </View>
+  ),
+  custom_message: ({
+    text1,
+    text2,
+    props,
+  }: {
+    text1: string;
+    text2: string;
+    props: ToastProps;
+  }) => (
+    <TouchableOpacity
+      onPress={props.onClick}
+      style={{ padding: 15, backgroundColor: "#f0f0f0", borderRadius: 10 }}
+    >
+      <Text style={{ fontWeight: "bold" }}>{text1}</Text>
+      <Text>{text2}</Text>
+    </TouchableOpacity>
   ),
   info: ({ text1, text2 }: { text1: string; text2: string }) => (
     <View style={{ padding: 15, backgroundColor: "#f0f0f0", borderRadius: 10 }}>
