@@ -106,7 +106,7 @@ const handleLoadMore = async () => {
     setLoadingMore(true);
     try {
 
-    console.log("-------------<<<<<<< yes here >>>>>>>-------------")
+    //console.log("-------------<<<<<<< yes here >>>>>>>-------------")
 
       await dispatch(fetchMessages(conversationId || '', messages.length, 20,senderUsername ));
     } catch (error) {
@@ -158,27 +158,32 @@ const handleLoadMore = async () => {
       </View>
     );
   };
-/*
-   useEffect(() => {
-      if (conversationId && messages.some((msg) => !msg.isRead)) {
-       // Step 1: Update the local state in Redux
-       dispatch(markMessagesAsRead(conversationId));
 
-       // Step 2: Dispatch the API call to update the backend
-       dispatch(updateMessagesAsReadAPI(conversationId));
-     }
-   }, [conversationId, messages, dispatch]);
-*/
 useEffect(() => {
-  if (conversationId && messages.some(msg => !msg.isRead)) {
-    dispatch(markMessagesAsRead(conversationId));
-    // Optional: Update hasUnread in the Redux state
-    dispatch({
-      type: 'messaging/updateHasUnread', // Add this action in your slice
-      payload: { conversationId, hasUnread: false },
-    });
+  if (conversationId) {
+
+//console.log("----------->>> workflow message as read ",JSON.stringify(messages),"  ", senderUsername)
+
+    // Filter for messages that are received and not read
+    const unreadReceivedMessages = messages.filter(
+      (msg) => !msg.isRead && msg.senderUsername !== senderUsername // Ensure the message was sent by the other user
+    );
+
+     // Optional: Update hasUnread in the Redux state
+          dispatch({
+            type: 'messaging/updateHasUnread', // Add this action in your slice
+            payload: { conversationId, hasUnread: false },
+          });
+      // Mark the messages as read in the local state
+dispatch(markMessagesAsRead(conversationId));
+
+    if (unreadReceivedMessages.length > 0) {
+      // Update the server to mark messages as read
+      dispatch(updateMessagesAsReadAPI(conversationId));
+    }
   }
-}, [conversationId, messages, dispatch]);
+}, [conversationId, messages, dispatch, senderUsername]);
+
 
   return (
     <View style={styles.popupContainer}>

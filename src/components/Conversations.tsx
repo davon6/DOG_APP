@@ -26,7 +26,7 @@ const Conversations: React.FC<ConversationsProps> = ({ user, friends }) => {
     if (conversationId) {
 
 
-        //console.log("---------------------->>>>>> so at this point no more username")
+        console.log("---------------------->>>>>> we pen our openPopup")
 
       dispatch(setActiveConversation({ conversationId, otherUser: receiverUsername }));
       setCurrentConversationId(conversationId);
