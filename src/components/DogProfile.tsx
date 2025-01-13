@@ -270,17 +270,9 @@ useEffect(() => {
   }, [selectedValue, pickerType, ageUnit]);
 
   return (
-    <View>
+    <View  style={{ flex: 1 }}>
 
-    <View onLayout={(event) => {
-      const { x, y, width, height } = event.nativeEvent.layout;
-      console.log('Layout of component:', { x, y, width, height });
-    }}>
-      <Text>Somesss Content</Text>
-    </View>
-
-
-       <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 192, 203, 0.8)' }]}>
+       <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 192, 203, 0.8)'  }]}>
                         <Text style={styles.menuTitle}>Doggie Profile</Text>
                         {/*renderField('Username', 'userName')*/}
                         {renderField( 'dogName')}
@@ -292,12 +284,6 @@ useEffect(() => {
                         {renderField('dogPersonality')}
                         {renderField('dogHobbies')}
 
-                            <View onLayout={(event) => {
-                              const { x, y, width, height } = event.nativeEvent.layout;
-                              console.log('Layout of component:', { x, y, width, height });
-                            }}>
-                              <Text>Some Contentsssssssssssssssssssssssss</Text>
-                            </View>
                       </View>
 
       {/* Hobbies */}
@@ -347,6 +333,8 @@ useEffect(() => {
             </View>
           </View>
         )}
+
+
 
         {/* Wheel Picker */}
         <WheelPicker
