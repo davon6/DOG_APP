@@ -193,6 +193,12 @@ const handleValidateSelection = () => {
      setTempValue(''); // Reset temp value
    };
 
+   const handleHobbiesModalClose = () => {
+     handleSave('dogHobbies'); // Save hobbies when the modal closes
+     setModalVisible(false); // Close the modal
+   };
+
+
    const renderField = ( field) => {
      const isPickerField = field === 'dogAge' || field === 'dogWeight';
      const isEditing = editableField === field;
@@ -242,10 +248,11 @@ const handleValidateSelection = () => {
          ) : null}
 
          {isEditing ? (
+             field === 'dogHobbies' ? null : (
            <TouchableOpacity onPress={() => handleSave(field)}>
              <Icon name="check" size={20} color="green" style={styles.icon} />
            </TouchableOpacity>
-         ) : (
+         )  ) : (
            <TouchableOpacity onPress={() => handleEdit(field, user[field])}>
              <Icon name="pencil" size={20} color="blue" style={styles.icon} />
            </TouchableOpacity>
@@ -296,7 +303,7 @@ useEffect(() => {
                 hobbies={hobbies}
                 selectedHobbies={selectedHobbies}
                 handleHobbyToggle={handleHobbyToggle}
-                setModalVisible={setModalVisible}
+                setModalVisible={handleHobbiesModalClose}
                 setSelectedHobbies={setSelectedHobbies}
               />
             )}
