@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
 import { setActiveConversation, startConversation } from '@/redux/slices/messagingSlice';
@@ -16,6 +16,14 @@ const Conversations: React.FC<ConversationsProps> = ({ user, friends }) => {
   const dispatch = useDispatch();
   const conversations = useSelector(selectConversationsList);
   const messages = useSelector((state: RootState) => state.messaging.messages);
+
+   useEffect(() => {
+      console.log("Conversations updated:", conversations);
+    }, [conversations]);
+
+    useEffect(() => {
+      console.log("Messages updated:", messages);
+    }, [messages]);
 
 //console.log("jesssssuuuuusssssss"+JSON.stringify(messages));
 

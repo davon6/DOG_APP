@@ -1,6 +1,7 @@
 import { useRef, useEffect, useState } from 'react';
 import { notifyFriendRequest,notifyEvent } from "@/services/notification";
 import { useSelector, useDispatch } from 'react-redux';
+import { receiveMessage } from '@/redux/slices/messagingSlice';
 
 export const useWebSocket = (url, username, maxRetryLimit = 5) => {
   const ws = useRef(null);
@@ -65,7 +66,18 @@ const [friend, setFriend] = useState(null);
           notifyFriendRequest(dispatch, username, [notification]);
           break;
         case "msg":
+
+                  dispatch(  receiveMessage ({
+                                    id:    notification.messageId,
+                                          conversationId:notification.conversationId,
+                                         senderUsername: notification.senderUsername,
+                                        text:  notification.text,
+                                        timestamp:  notification.timestamp,
+                                         }));
           notifyEvent(dispatch, username, [notification]);
+
+
+
           break;
         default:
           console.warn(`Unhandled notification type: ${notification.type}`);

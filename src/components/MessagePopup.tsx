@@ -210,6 +210,8 @@ dispatch(markMessagesAsRead(conversationId));
         ref={flatListRef}
             data={sortedMessages || []} // Ensure data is always an array
             keyExtractor={(item, index) => (item?.id ? item.id.toString() : index.toString())}
+
+         // solution a re-render ? keyExtractor={(item) => item.id}
           /* same works well !
           renderItem={({ item }) => (
             <MessageItem item={item} isOwnMessage={item.senderUsername === senderUsername} />

@@ -54,7 +54,55 @@ const messagingSlice = createSlice({
   initialState,
    messages: {}, // Messages keyed by conversationId
       hasMore: {}, // Pagination data keyed by conversationId
+      conversations: {},
   reducers: {
+      receiveMessage: (state, action: PayloadAction<Message>) => {
+
+            console.log("receiveMessage payload:", action.payload);
+
+        const { id, conversationId, senderUsername, text, timestamp } = action.payload;
+
+
+if (!id || !conversationId || !senderUsername || !text || !timestamp) {
+    console.error("Payload is missing required fields:", action.payload);
+  }
+
+        // Ensure the conversation exists
+        if (!state.conversations[conversationId]) {
+          state.conversations[conversationId] = {
+            id: conversationId,
+            participants: [senderUsername], // Assuming sender is part of the conversation
+            messages: [],
+            hasUnread: true,
+            otherUser: senderUsername,
+          };
+        }
+
+        // Add the message to the conversation
+       if (!state.conversations[conversationId].messages.includes(id.toString())) {
+               state.conversations[conversationId].messages.push(id.toString());
+             }
+
+   state.conversations[conversationId].messages.sort((a, b) => {
+      return parseInt(a) - parseInt(b); // Sort by ID (ascending)
+    });
+
+         console.log('Updated conversation messages:', state.conversations[conversationId].messages);
+
+
+        // Update hasUnread status for the conversation
+        state.conversations[conversationId].hasUnread = true;
+
+        // Add the message to the global `messages` object
+        state.messages[id] = {
+          id,
+          conversationId,
+          senderUsername,
+          text,
+          timestamp,
+        };
+      },
+
     setActiveConversation: (state, action: PayloadAction<string>) => {
 
         console.log("setActiveConversation action.payload"+ JSON.stringify(action.payload));
@@ -208,6 +256,7 @@ updateHasUnread: (state, action: PayloadAction<{ conversationId: string; hasUnre
 });
 
 export const {
+    receiveMessage,
   setActiveConversation,
   setConversations,
   addConversation,
@@ -298,6 +347,8 @@ export const sendMessage = (conversationId: string, senderUsername: string, text
   try {
     const tempId = uuid.v4().toString();
     const date = new Date();
+
+    console.log("the date ------->>>>>>  "+date)
 
     dispatch(
       addMessage({
@@ -395,5 +446,29 @@ export const updateMessagesAsReadAPI = createAsyncThunk(
     }
   }
 );
+/*
+export const receiveMessage = (
+  id: string,
+  conversationId: string,
+  senderUsername: string,
+  text: string,
+  timestamp: string
+): AppThunk => async dispatch => {
+  try {
+    // Dispatch the action to add the message to Redux state
+    dispatch(
+      addMessage({
+        id,
+        conversationId,
+        senderUsername,
+        text,
+        timestamp,
+        isRead: false, // Assume the new message is unread
+      })
+    );
+  } catch (error) {
+    console.error('Error processing received message:', error);
+  }
+};*/
 
 export default messagingSlice.reducer;

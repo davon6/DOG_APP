@@ -117,7 +117,7 @@ export const notifyEvent = (
     ? notifications.filter(
         (notification) => !notification.isRead && notification.type === "msg"
       )
-    : [];   
+    : [];
 
   messageNotifications.forEach((notification) => {
     Toast.show({
@@ -131,8 +131,8 @@ export const notifyEvent = (
           Alert.alert("Opening Chat", `Chat with ${notification.senderUsername}`);
         },
       },
-      autoHide: false,
-      visibilityTime: 0,
+      autoHide: true,
+      visibilityTime: 2000,
     });
   });
 };
