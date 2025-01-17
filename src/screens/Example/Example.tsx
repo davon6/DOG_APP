@@ -12,13 +12,13 @@ import { RootState } from '@/redux/store'; // Import RootState
 import { useSelector, useDispatch } from 'react-redux';
 import LogOut from '@/components/LogOut'
 import SignOutPopup from '@/components/SignOut';
-import { useLogOut } from '@/services';
+import { useLogOut, useMapLogic } from '@/services';
 import { useWebSocket } from '@/services/wsSocket';
 const { width } = Dimensions.get('window');
 
 const App = (data) => {
 
-    const [location, setLocation] = useState(null);
+    //const [location, setLocation] = useState(null);
     const [activeMenu, setActiveMenu] = useState(null);
     const [menuAnim] = useState(new Animated.Value(-width));
     const [newsFeedMenuOpen, setNewsFeedMenuOpen] = useState(false);
@@ -29,10 +29,11 @@ const App = (data) => {
     const { logOut } = useLogOut();
     const [showSignOutPopup, setShowSignOutPopup] = useState(false);
 
+    const { location, zone, shouldFocusMap  } = useMapLogic();
 
  const username = data.route.params[0];
   const { isConnected, closeWebSocket, friend } = useWebSocket(
-    'wss://eabf-2a04-cec0-1003-a95b-85a4-3455-4d2f-66f0.ngrok-free.app',
+    'wss://e748-2a04-cec0-11ff-d442-65b7-1d29-eab5-c37.ngrok-free.app',
     username
   );
 const [friends, setFriends] = useState(data.route.params[1] || {});
@@ -100,7 +101,7 @@ useEffect(() => {
                };
 }, [dispatch, data.route.params[0], notifications]);
 */
-
+/*
   useEffect(() => {
     const watchId = Geolocation.watchPosition(
       (position) => {
@@ -116,7 +117,7 @@ useEffect(() => {
     );
 
     return () => Geolocation.clearWatch(watchId);
-  }, []);
+  }, []);*/
 
    const toggleNewsFeedMenu = () => {
       setNewsFeedMenuOpen(!newsFeedMenuOpen);
@@ -149,7 +150,7 @@ useEffect(() => {
     <View style={styles.container}>
 
     {/*come on*/}
-      <MapComponent location={location} users={users} />
+      <MapComponent location={location} users={users} zone ={zone} shouldFocusMap={shouldFocusMap } />
 
       {loading && <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />}
 
