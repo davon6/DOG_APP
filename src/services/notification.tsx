@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Alert } from "react-native";
 import Toast from "react-native-toast-message";
 import { Dispatch } from "redux";
 import notificationTemplates from './notifications.json';
+import { updateNotificationResponse } from '@/redux/slices/notificationsSlice';
 
 // TypeScript Interfaces
 interface Notification {
@@ -39,7 +40,7 @@ const handleFriendRequestResponse = (
       : notificationTemplates.friend_declined.replace('{demanding_user}', notification.relatedUsername);
 
   // Dispatch action (example: update state for friend requests)
-  dispatch({
+  /*dispatch({
     type: 'UPDATE_NOTIFICATION_RESPONSE',
     payload: {
       notificationId: notification.id,
@@ -48,8 +49,8 @@ const handleFriendRequestResponse = (
       username,
       relatedUsername: notification.relatedUsername,
     },
-  });
-
+  });*/
+   dispatch(updateNotificationResponse({ notificationId: notification.id, response, newText, username,  relatedUsername: notification.relatedUsername }));
   Toast.hide(); // Hide the toast
 };
 

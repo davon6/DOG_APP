@@ -51,11 +51,12 @@ const [friend, setFriend] = useState(null);
         /*  if (receivedData.notification) {
             notifyFriendRequest(dispatch, username,[receivedData.notification]);
           }*/
+      /*
         if (receivedData.username) {
             console.log("omg here is a new firend")
                      console.log("omg here is a new firend"+JSON.stringify(receivedData));
                 setFriend(receivedData.username);  // Update friend state with new friend
-              }
+              }*/
 
 
    if (receivedData.notification) {
@@ -75,9 +76,10 @@ const [friend, setFriend] = useState(null);
                                         timestamp:  notification.timestamp,
                                          }));
           notifyEvent(dispatch, username, [notification]);
+ break;
 
-
-
+ case "relationship_update":console.log("omg here is a new firend"+JSON.stringify(receivedData));
+                                            setFriend(notification.username);
           break;
         default:
           console.warn(`Unhandled notification type: ${notification.type}`);

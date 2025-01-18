@@ -128,7 +128,7 @@ const NewDoggiePopup: React.FC<NewDoggiePopupProps> = ({ onClose, onSelectDoggie
                if (item.relationship === 'none') {
                  sendFriendRequest(userName, item.username)
                    .then(() => {
-                     Alert.alert('Friend Request', `Friend request sent to ${item.username}!`);
+                   //  Alert.alert('Friend Request', `Friend request sent to ${item.username}!`);
                      setFriendStatuses((prevStatuses) =>
                        prevStatuses.map((status) =>
                          status.username === item.username

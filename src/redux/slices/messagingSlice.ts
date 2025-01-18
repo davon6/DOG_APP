@@ -194,6 +194,8 @@ addConversation: (state, action: PayloadAction<Conversation>) => {
         state.users[user.id] = user;
       });
     },
+
+/*
    updateMessageId: (state, action: PayloadAction<{ tempId: string; messageId: string }>) => {
      const { tempId, messageId } = action.payload;
      const message = state.messages[tempId];
@@ -214,7 +216,43 @@ addConversation: (state, action: PayloadAction<Conversation>) => {
          }
        }
      }
+   },*/
+   updateMessageId: (state, action: PayloadAction<{ tempId: string; messageId: string }>) => {
+     const { tempId, messageId } = action.payload;
+     const message = state.messages[tempId];
+     if (!message) {
+       console.error(`Temp message ID ${tempId} not found in state`);
+       return;
+     }
+
+     // Update messages immutably
+     state.messages = {
+       ...state.messages,
+       [messageId]: { ...message, id: messageId },
+     };
+     delete state.messages[tempId];
+
+     // Update conversations immutably
+     const conversation = state.conversations[message.conversationId];
+     if (conversation) {
+       const messageIndex = conversation.messages.indexOf(tempId);
+       if (messageIndex > -1) {
+         const updatedMessages = [...conversation.messages];
+         updatedMessages[messageIndex] = messageId;
+
+         state.conversations = {
+           ...state.conversations,
+           [message.conversationId]: {
+             ...conversation,
+             messages: updatedMessages,
+           },
+         };
+       } else {
+         console.error(`Temp message ID ${tempId} not found in conversation messages`);
+       }
+     }
    },
+
       logout: (state) => {
          return {
            activeConversation: null,
@@ -359,7 +397,10 @@ export const sendMessage = (conversationId: string, senderUsername: string, text
         timestamp: toISOWithTimeZone(date, "Europe/Paris"),
       })
     );
-
+console.log("--------< so we added "+tempId, conversationId,
+                                                   senderUsername,
+                                                   text,
+                                                    toISOWithTimeZone(date, "Europe/Paris"));
 // Usage
 /*
 console.log("ISO format with specified time zone:", toISOWithTimeZone(date, "Europe/Paris"));
@@ -369,9 +410,10 @@ console.log("what a story "+ new Date().toLocaleTimeString()+ " new Date().toISO
 console.log("Timezone offset:", new Date().getTimezoneOffset()); // in minutes
 console.log("Local time with explicit time zone:", new Date().toLocaleString("en-GB", { timeZone: "Europe/Paris" }));
 */
+/*
     const messageIdFromServer = await apiSendMessage(conversationId, senderUsername, text);
     dispatch(updateMessageId({ tempId, messageId: messageIdFromServer }));
-
+*/
 /*
      dispatch(addMessage({ id: messageIdFromServer,
                                  conversationId,

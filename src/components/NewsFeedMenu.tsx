@@ -41,6 +41,8 @@ const NewsFeedMenu = ({ isOpen, toggleMenu, username /*, notifications*/ }) => {
   const handleFriendRequestResponse = (notificationId: number, response: 'accept' | 'decline') => {
     const notification = notifications.find((n) => n.id === notificationId);
 
+console.log("allright handleFriendRequestResponse------------->>>>");
+
     if (!notification) return;
 
     const newText =
