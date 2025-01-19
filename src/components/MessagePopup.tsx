@@ -86,6 +86,8 @@ useEffect(() => {
           setNewReceiverUsername('');
         }
       }
+  console.log("-------------<<<<<<< yes here >>>>>>>-------------")
+
       // Send a message in the current conversation
       await dispatch(sendMessage(conversationId || '', senderUsername, messageText));
       setMessageText('');

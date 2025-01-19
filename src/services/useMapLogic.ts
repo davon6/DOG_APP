@@ -36,13 +36,17 @@ const [shouldFocusMap, setShouldFocusMap] = useState(true);
   };
 
   useEffect(() => {
+
+
+      console.log("------------------------> indeed this is fullon",previousLocation,shouldFocusMap)
+
     const watchId = Geolocation.watchPosition(
       (position) => {
         const newLocation = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         };
-
+/*
         if (previousLocation) {
           const distance = haversine(
             previousLocation.latitude,
@@ -57,6 +61,8 @@ const [shouldFocusMap, setShouldFocusMap] = useState(true);
         }
 
         setPreviousLocation(newLocation); // Update the previous location
+
+        */
         setLocation(newLocation); // Set the new location
 
         const currentZone = calculateZone(newLocation, 0.0922, 0.0421); // Adjust deltas if needed
@@ -77,7 +83,7 @@ const [shouldFocusMap, setShouldFocusMap] = useState(true);
     return () => Geolocation.clearWatch(watchId);
   }, [previousLocation,shouldFocusMap]);
 
-  return  { location, zone, shouldFocusMap };
+  return  { location , zone, shouldFocusMap };
 };
 
 export default useMapLogic;

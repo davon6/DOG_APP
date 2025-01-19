@@ -3,7 +3,10 @@ import { notifyFriendRequest,notifyEvent } from "@/services/notification";
 import { useSelector, useDispatch } from 'react-redux';
 import { receiveMessage } from '@/redux/slices/messagingSlice';
 
-export const useWebSocket = (url, username, maxRetryLimit = 5) => {
+export const useWebSocket = (url, username, location, radius, maxRetryLimit = 5) => {
+
+      //console.log("------------------------>>> location please : "+JSON.stringify(location));
+
   const ws = useRef(null);
   const reconnectTimeout = useRef(null);
   const heartbeatInterval = useRef(null);
@@ -11,9 +14,11 @@ export const useWebSocket = (url, username, maxRetryLimit = 5) => {
   const dispatch = useDispatch();
  // let friend ="";
 const [friend, setFriend] = useState(null);
-
+const [users2, setUsers2] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [retryCount, setRetryCount] = useState(0);
+
+
 
   const connectWebSocket = () => {
     if (!ws.current || ws.current.readyState !== WebSocket.OPEN) {
@@ -39,10 +44,22 @@ const [friend, setFriend] = useState(null);
           if (ws.current && ws.current.readyState === WebSocket.OPEN) {
             ws.current.send(JSON.stringify({ type: "heartbeat" }));
           } else {
-            console.warn("Cannot send heartbeat, WebSocket is not connected.");
+           // console.warn("Cannot send heartbeat, WebSocket is not connected.");
 
           }
         }, 15000);
+/*
+      if (location && location.latitude && location.longitude) {
+        const locationUpdate = {
+          type: 'updateLocation',
+          username: username,
+          lat: location.latitude,
+          long: location.longitude,
+        };
+        ws.current.send(JSON.stringify(locationUpdate));
+      } else {
+        console.warn("Location is not ready yet. Will retry sending later.");
+      }*/
       };
 
       ws.current.onmessage = (event) => {
@@ -81,6 +98,9 @@ const [friend, setFriend] = useState(null);
  case "relationship_update":console.log("omg here is a new firend"+JSON.stringify(receivedData));
                                             setFriend(notification.username);
           break;
+           case "userGeoLocated":console.log("geolocated");
+                                                      setUsers2(notification.data);
+                    break;
         default:
           console.warn(`Unhandled notification type: ${notification.type}`);
       }
@@ -139,6 +159,45 @@ const [friend, setFriend] = useState(null);
     };
   }, [url, username]);
 
+  useEffect(() => {
+    const locationInterval = setInterval(() => {
+      if (location && location.latitude && location.longitude && ws.current?.readyState === WebSocket.OPEN) {
+        const locationUpdate = {
+          type: 'updateLocation',
+          username: username,
+          lat: location.latitude,
+          long: location.longitude,
+          radius : radius
+        };
+        console.log("Sending location update:", locationUpdate);
+        ws.current.send(JSON.stringify(locationUpdate));
+      } else if (ws.current?.readyState !== WebSocket.OPEN) {
+        console.warn("WebSocket not ready. Skipping location update.");
+      }
+    }, 15000); // Send location update every 15 seconds
+
+    return () => {
+      console.log("Cleaning up location update interval...");
+      clearInterval(locationInterval); // Clear the interval on component unmount
+    };
+  }, [location, username]); // Re-run effect if `location` or `username` changes
+
+
+useEffect(() => {
+  if (location && location.latitude && location.longitude && ws.current?.readyState === WebSocket.OPEN) {
+    const locationUpdate = {
+      type: 'updateLocation',
+      username: username,
+      lat: location.latitude,
+      long: location.longitude,
+    };
+    console.log("Sending immediate location update:", locationUpdate);
+    ws.current.send(JSON.stringify(locationUpdate));
+  } else if (!location) {
+   // console.warn("Location is not ready yet.");
+  }
+}, [location]);
+
 /*
 useEffect(() => {
   if (!isLoggingOut) {
@@ -156,5 +215,5 @@ useEffect(() => {
     if (connectionTimeout.current) clearTimeout(connectionTimeout.current);
   };
 }, [isLoggingOut]);*/
-  return { isConnected, closeWebSocket, friend };
+  return { isConnected, closeWebSocket, friend, users2 };
 };

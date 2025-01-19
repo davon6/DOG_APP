@@ -16,14 +16,14 @@ const Conversations: React.FC<ConversationsProps> = ({ user, friends }) => {
   const dispatch = useDispatch();
   const conversations = useSelector(selectConversationsList);
   const messages = useSelector((state: RootState) => state.messaging.messages);
-
+/*
    useEffect(() => {
       console.log("Conversations updated:", conversations);
     }, [conversations]);
 
     useEffect(() => {
       console.log("Messages updated:", messages);
-    }, [messages]);
+    }, [messages]);*/
 
 //console.log("jesssssuuuuusssssss"+JSON.stringify(messages));
 
@@ -33,10 +33,12 @@ const Conversations: React.FC<ConversationsProps> = ({ user, friends }) => {
   const [newChatReceiver, setNewChatReceiver] = useState<string | null>(null);
 
   const openPopup = (conversationId?: string, receiverUsername?: string) => {
+     console.log("---------------------->>>>>> we pen our openPopup",conversationId, receiverUsername)
+
     if (conversationId) {
 
 
-        console.log("---------------------->>>>>> we pen our openPopup")
+
 
       dispatch(setActiveConversation({ conversationId, otherUser: receiverUsername }));
       setCurrentConversationId(conversationId);

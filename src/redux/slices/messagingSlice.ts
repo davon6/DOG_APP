@@ -310,6 +310,9 @@ export { messagingSelectors };
 
 export const startConversation = (senderUsername: string, receiverUsername: string): AppThunk => async (dispatch, getState) => {
   try {
+
+       console.log("Inside startConversation with conversationId: " + senderUsername, receiverUsername);
+
     const conversationId = await apiStartConversation(senderUsername, receiverUsername);
 
     console.log("Inside startConversation with conversationId: " + conversationId);
@@ -410,9 +413,9 @@ console.log("what a story "+ new Date().toLocaleTimeString()+ " new Date().toISO
 console.log("Timezone offset:", new Date().getTimezoneOffset()); // in minutes
 console.log("Local time with explicit time zone:", new Date().toLocaleString("en-GB", { timeZone: "Europe/Paris" }));
 */
-/*
+
     const messageIdFromServer = await apiSendMessage(conversationId, senderUsername, text);
-    dispatch(updateMessageId({ tempId, messageId: messageIdFromServer }));
+ /*   dispatch(updateMessageId({ tempId, messageId: messageIdFromServer }));
 */
 /*
      dispatch(addMessage({ id: messageIdFromServer,

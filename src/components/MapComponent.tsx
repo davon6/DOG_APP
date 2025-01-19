@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import MapView, { Marker, Callout, Polygon } from 'react-native-maps';
+import MapView, { Marker, Callout } from 'react-native-maps';
 import { View, Text, ActivityIndicator, Modal, TouchableWithoutFeedback } from 'react-native';
 import UserInfoPopup from './UserInfoPopUp';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-const MapComponent = ({ location, users, zone, shouldFocusMap, onRadiusChange, users2  }) => {
+const MapComponent = ({ location, users, zone, shouldFocusMap, onRadiusChange, users2, username  }) => {
 
     const [previousRegion, setPreviousRegion] = useState(null);
 const [loadingUsers, setLoadingUsers] = useState(true);
@@ -17,13 +17,13 @@ const handleMapPress = () => {
   useEffect(() => {
     // If users array is populated, set loading state to false after a short delay
     if (users2 && users2.length > 0) {
-
+/*
         console.log("--------------->>>>>>>>>>>>>>>>>>>>>>>>>>> users2 in mapComponenet ",users2)
 
 console.log(users2[0].username);
 console.log(users2[0].dog.dogColor)
 console.log("User coordinates:", users2[0].lat, users2[0].long);
-
+*/
       setLoadingUsers(false);
     }
   }, [users2]);
@@ -93,7 +93,7 @@ onRadiusChange(radiusKm);
       console.log('Zoom level is high. Map area is smaller than 1 km².');
     }
 
-    console.log('Visible map area (km):', { heightKm, widthKm });
+    //console.log('Visible map area (km):', { heightKm, widthKm });
 
    // console.log('New view zone:', newZone);
     setViewZone(newZone);
@@ -121,7 +121,7 @@ onRadiusChange(radiusKm);
       if (heightKm < 1 && widthKm < 1) {
         console.log('Zoom level is high. Map area is smaller than 1 km².');
       }
- console.log("--------------------> our radius "+ radiusKm);
+ //console.log("--------------------> our radius "+ radiusKm);
       return radiusKm;
       // Return the calculated radius in kilometers
     };
@@ -150,38 +150,11 @@ return (
       onRegionChangeComplete={handleRegionChangeComplete}
       onPress={handleMapPress}
     >
-      {/* User's Current Location */}
+      {/* User's Current Location
       {location && <Marker coordinate={location} />}
+*/}
 
-      {/* Blue Zone: Static Zone */}
-      {zone && (
-        <Polygon
-          coordinates={[
-            { latitude: zone.north, longitude: zone.west },
-            { latitude: zone.north, longitude: zone.east },
-            { latitude: zone.south, longitude: zone.east },
-            { latitude: zone.south, longitude: zone.west },
-          ]}
-          fillColor="rgba(0, 150, 255, 0.3)"
-          strokeColor="blue"
-          strokeWidth={2}
-        />
-      )}
 
-      {/* Yellow Zone: Map View Zone */}
-      {viewZone && viewZone.north && viewZone.south && viewZone.east && viewZone.west && (
-        <Polygon
-          coordinates={[
-            { latitude: viewZone.north, longitude: viewZone.west },
-            { latitude: viewZone.north, longitude: viewZone.east },
-            { latitude: viewZone.south, longitude: viewZone.east },
-            { latitude: viewZone.south, longitude: viewZone.west },
-          ]}
-          fillColor="rgba(255, 255, 0, 0.3)"
-          strokeColor="orange"
-          strokeWidth={2}
-        />
-      )}
 
       {/* Render User Markers with Custom Icons */}
              {!loadingUsers &&
@@ -193,19 +166,19 @@ return (
                  >
                    <View style={{ alignItems: 'center' }}>
                      {/* Awesome Icon */}
-                     <Icon name="paw" size={30} color="orange" />
+                     <Icon name="paw" size={45} color="orange" />
                      <Text style={{ fontSize: 12 }}>{user.dog.dogName}</Text>
                    </View>
                  </Marker>
                ))}
     </MapView>
 
-    {/* Loader */}
+    {/* Loader
     {loadingUsers && (
       <View style={{ position: 'absolute', top: '50%', left: '50%' }}>
         <ActivityIndicator size="large" color="#0000ff" />
       </View>
-    )}
+    )}*/}
 
     {/* User Info Popup */}
     <Modal
@@ -220,6 +193,7 @@ return (
                  <UserInfoPopup
                    user={selectedUser}
                    onClose={() => setSelectedUser(null)} // Close button inside the popup
+                   username ={username}
                  />
                )}
              </View>

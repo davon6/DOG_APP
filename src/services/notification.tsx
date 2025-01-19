@@ -4,6 +4,9 @@ import Toast from "react-native-toast-message";
 import { Dispatch } from "redux";
 import notificationTemplates from './notifications.json';
 import { updateNotificationResponse } from '@/redux/slices/notificationsSlice';
+import { useMessagePopup } from '@/services';
+import { startConversation } from '@/redux/slices/messagingSlice';
+
 
 // TypeScript Interfaces
 interface Notification {
@@ -128,8 +131,18 @@ export const notifyEvent = (
       text2: `${notification.text}`,
       props: {
         sender: notification.relatedUsername,
-        onClick: () => {
-          Alert.alert("Opening Chat", `Chat with ${notification.senderUsername}`);
+        onClick: async () => {
+             const conversationId = await dispatch(startConversation(username, user.username));
+
+              console.log('Opening message popup...');
+              showMessagePopup({
+                senderUsername: username,
+                receiverUsername: user.username,
+                conversationId :conversationId,
+                onClose: () => {
+                  console.log('Message popup closed');
+                },
+              });
         },
       },
       autoHide: true,

@@ -28,29 +28,48 @@ const App = (data) => {
     const { users, loading } = useExampleLogic();
     const { logOut } = useLogOut();
     const [showSignOutPopup, setShowSignOutPopup] = useState(false);
+    const [radius, setRadius] = useState<number>(0);
 
     const { location, zone, shouldFocusMap  } = useMapLogic();
 
+     const handleRadiusUpdate = (newRadius: number) => {
+       // console.log("Received radius from MapComponent:", newRadius);
+        setRadius(newRadius);  // Set the radius in the parent state
+      };
+
+
+   // console.log(JSON.stringify(location));
+
  const username = data.route.params[0];
-  const { isConnected, closeWebSocket, friend } = useWebSocket(
+  const { isConnected, closeWebSocket, friend, users2 } = useWebSocket(
     'wss://e748-2a04-cec0-11ff-d442-65b7-1d29-eab5-c37.ngrok-free.app',
-    username
+    username, location, radius
   );
 const [friends, setFriends] = useState(data.route.params[1] || {});
 
 const [notifications, setNotifications] = useState(data.route.params[2] || {});
 
+/*
+  useEffect(() => {
+    // If users array is populated, set loading state to false after a short delay
+    if (users2 && users2.length > 0) {
+
+        console.log("--------------->>>>>>>>>>>>>>>>>>>>>>>>>>> users2 ",users2)
+
+    }
+  }, [users2]);
+*/
 
 useEffect(() => {
   if (data) {
 
-      console.log("oving slooowly --->"+JSON.stringify(notifications));
+    //  console.log("oving slooowly --->"+JSON.stringify(notifications));
 
     // Call notifyFriendRequest only once
     notifyFriendRequest(dispatch, data.route.params[0], notifications);}
 }, [dispatch, data.route.params[0], notifications]);
 
-console.log("so this is the start"+ JSON.stringify(friends));
+// console.log("so this is the start"+ JSON.stringify(friends));
 
 useEffect(() => {
 
@@ -150,7 +169,8 @@ useEffect(() => {
     <View style={styles.container}>
 
     {/*come on*/}
-      <MapComponent location={location} users={users} zone ={zone} shouldFocusMap={shouldFocusMap } />
+      <MapComponent location={location} users={users} zone ={zone} shouldFocusMap={shouldFocusMap }
+       onRadiusChange={handleRadiusUpdate} users2={users2} username={username}/>
 
       {loading && <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />}
 
