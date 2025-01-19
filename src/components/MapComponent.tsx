@@ -1,8 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import MapView, { Marker, Callout, Polygon } from 'react-native-maps';
-import { View, Text } from 'react-native';
+import { View, Text, ActivityIndicator, Modal, TouchableWithoutFeedback } from 'react-native';
+import UserInfoPopup from './UserInfoPopUp';
+import Icon from 'react-native-vector-icons/FontAwesome';
 
-const MapComponent = ({ location, users, zone, shouldFocusMap }) => {
+const MapComponent = ({ location, users, zone, shouldFocusMap, onRadiusChange, users2  }) => {
+
+    const [previousRegion, setPreviousRegion] = useState(null);
+const [loadingUsers, setLoadingUsers] = useState(true);
+const [selectedUser, setSelectedUser] = useState(null);
+
+const handleMapPress = () => {
+    setSelectedUser(null); // Close popup when tapping on the map
+  };
+
+  useEffect(() => {
+    // If users array is populated, set loading state to false after a short delay
+    if (users2 && users2.length > 0) {
+
+        console.log("--------------->>>>>>>>>>>>>>>>>>>>>>>>>>> users2 in mapComponenet ",users2)
+
+console.log(users2[0].username);
+console.log(users2[0].dog.dogColor)
+console.log("User coordinates:", users2[0].lat, users2[0].long);
+
+      setLoadingUsers(false);
+    }
+  }, [users2]);
   const calculateZone = (region) => {
     const { latitude, longitude, latitudeDelta, longitudeDelta } = region;
     return {
@@ -40,6 +64,23 @@ const MapComponent = ({ location, users, zone, shouldFocusMap }) => {
 
   // Handle region change on user interaction
   const handleRegionChangeComplete = (region) => {
+
+
+const radiusKm = calculateRadiusFromRegion(region);
+
+onRadiusChange(radiusKm);
+      const isRegionSignificantChange =
+          !previousRegion ||
+          Math.abs(region.latitude - previousRegion.latitude) > 0.001 ||
+          Math.abs(region.longitude - previousRegion.longitude) > 0.001 ||
+          Math.abs(region.latitudeDelta - previousRegion.latitudeDelta) > 0.001 ||
+          Math.abs(region.longitudeDelta - previousRegion.longitudeDelta) > 0.001;
+
+        if (isRegionSignificantChange) {
+
+
+
+
     const newZone = calculateZone(region);
 
     // Calculate the visible map area in kilometers
@@ -54,10 +95,39 @@ const MapComponent = ({ location, users, zone, shouldFocusMap }) => {
 
     console.log('Visible map area (km):', { heightKm, widthKm });
 
-    console.log('New view zone:', newZone);
+   // console.log('New view zone:', newZone);
     setViewZone(newZone);
     setMapRegion(region); // Update the current map region
+    setPreviousRegion(region);
+  }
+
   };
+
+
+   const calculateRadiusFromRegion = (region: {
+      latitude: number;
+      longitude: number;
+      latitudeDelta: number;
+      longitudeDelta: number;
+    }): number => {
+      const heightKm = region.latitudeDelta * 111; // Latitude: ~111 km per degree
+      const widthKm =
+        region.longitudeDelta * (111 * Math.cos((region.latitude * Math.PI) / 180)); // Longitude depends on latitude
+
+      // Calculate the diagonal of the visible area (Pythagorean theorem)
+      const radiusKm = Math.sqrt(heightKm ** 2 + widthKm ** 2) / 2;
+
+      // Optional: Log if the visible map area is smaller than 1 km²
+      if (heightKm < 1 && widthKm < 1) {
+        console.log('Zoom level is high. Map area is smaller than 1 km².');
+      }
+ console.log("--------------------> our radius "+ radiusKm);
+      return radiusKm;
+      // Return the calculated radius in kilometers
+    };
+
+ // console.log("--------------------> our radius "+calculateRadiusFromRegion());
+
 
   // Set map focus when `shouldFocusMap` is true
   React.useEffect(() => {
@@ -71,37 +141,15 @@ const MapComponent = ({ location, users, zone, shouldFocusMap }) => {
     }
   }, [shouldFocusMap, location]);
 
-  return (
+return (
+  <View style={{ flex: 1 }}>
     <MapView
       style={{ flex: 1 }}
       region={mapRegion} // Controlled region state
       showsUserLocation={true}
       onRegionChangeComplete={handleRegionChangeComplete}
+      onPress={handleMapPress}
     >
-      {/* User Markers */}
-      {users.map((user, index) => (
-        <Marker
-          key={index}
-          coordinate={{
-            latitude: user.LAST_LOCAT_LAT,
-            longitude: user.LAST_LOCAT_LONG,
-          }}
-          title={user.userName}
-          description={`Tap to view more details`}
-        >
-          <Callout>
-            <View>
-              <Text style={{ fontWeight: 'bold' }}>{user.userName}</Text>
-              <Text>Doggy Name: {user.DOG_NAME}</Text>
-              <Text>Doggy Color: {user.D_COLOR}</Text>
-              <Text>Doggy Weight: {user.D_WEIGHT}</Text>
-              <Text>Doggy Race: {user.D_RACE}</Text>
-              <Text>Doggy Vibe: {user.D_VIBE}</Text>
-            </View>
-          </Callout>
-        </Marker>
-      ))}
-
       {/* User's Current Location */}
       {location && <Marker coordinate={location} />}
 
@@ -134,8 +182,53 @@ const MapComponent = ({ location, users, zone, shouldFocusMap }) => {
           strokeWidth={2}
         />
       )}
+
+      {/* Render User Markers with Custom Icons */}
+             {!loadingUsers &&
+               users2.map((user) => (
+                 <Marker
+                   key={user.username}
+                   coordinate={{ latitude: user.lat, longitude: user.long }}
+                   onPress={() => setSelectedUser(user)} // Show popup when marker is pressed
+                 >
+                   <View style={{ alignItems: 'center' }}>
+                     {/* Awesome Icon */}
+                     <Icon name="paw" size={30} color="orange" />
+                     <Text style={{ fontSize: 12 }}>{user.dog.dogName}</Text>
+                   </View>
+                 </Marker>
+               ))}
     </MapView>
-  );
+
+    {/* Loader */}
+    {loadingUsers && (
+      <View style={{ position: 'absolute', top: '50%', left: '50%' }}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
+    )}
+
+    {/* User Info Popup */}
+    <Modal
+           visible={!!selectedUser}
+           transparent
+           animationType="fade"
+           onRequestClose={() => setSelectedUser(null)} // Handle back press for Android
+         >
+           <TouchableWithoutFeedback onPress={() => setSelectedUser(null)}>
+             <View style={{ flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+               {selectedUser && (
+                 <UserInfoPopup
+                   user={selectedUser}
+                   onClose={() => setSelectedUser(null)} // Close button inside the popup
+                 />
+               )}
+             </View>
+           </TouchableWithoutFeedback>
+         </Modal>
+  </View>
+);
+
+
 };
 
 export default MapComponent;
