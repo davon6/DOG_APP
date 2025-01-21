@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TextInput, View, Text, TouchableOpacity, Modal, Switch, StyleSheet, Animated } from 'react-native';
 import { WheelPicker } from 'react-native-wheel-picker-android';
-//import EditableDogFields from './EditableDogFields';
 import HobbiesModal from './HobbiesModal';
 import { updateUser as updtU } from '@/api/apiService';
 import Icon from 'react-native-vector-icons/FontAwesome';
+import CustomModal from './CustomModal';
+import PickerModal from './pickerModal';
 
 const DogProfile = ({ user, updateUser }) => {
   const hobbies = [
@@ -15,9 +16,9 @@ const DogProfile = ({ user, updateUser }) => {
     'Learning Tricks', 'Playing in the Water', 'Walking on Leash',
   ];
 
-  const [editableField, setEditableField] = useState(null); // Track which field is being edited
-      const [tempValue, setTempValue] = useState(''); // Temporary value for editing
-const inputRef = useRef<TextInput>(null);
+    const [editableField, setEditableField] = useState(null); // Track which field is being edited
+    const [tempValue, setTempValue] = useState(''); // Temporary value for editing
+    const inputRef = useRef<TextInput>(null);
     const [showPicker, setShowPicker] = useState(false); // Controls wheel visibility
     const [pickerType, setPickerType] = useState(''); // Type of the field being modified ('age' or 'weight')
     const [age, setAge] = useState(5);
@@ -28,6 +29,23 @@ const inputRef = useRef<TextInput>(null);
 
     const [selectedHobbies, setSelectedHobbies] = useState<number[]>([]);
     const [modalVisible, setModalVisible] = useState(false);
+
+
+      const [customModalVisible, setCustomModalVisible] = useState(false);
+      const [customModalContent, setCustomModalContent] = useState(''); // Content for the modal
+      const [customModalTitle, setCustomModalTitle] = useState(''); // Title for the modal
+
+
+
+const handleOpenCustomModal = (title: string, content: string | string[]) => {
+    setCustomModalTitle(title);
+    setCustomModalContent(content);
+    setCustomModalVisible(true);
+  };
+
+   const handleCloseCustomModal = () => {
+      setCustomModalVisible(false);
+    };
 
  const handleOpenPicker = (field) => {
    setPickerType(field);
@@ -128,7 +146,7 @@ const handleValidateSelection = () => {
          if (field === 'dogAge' || field === 'dogWeight') {
            handleOpenPicker(field); // Directly open the picker for these fields
          } else if (field === 'dogHobbies') {
-               setEditableField(field); // Set hobbies to editable mode
+               //setEditableField(field); // Set hobbies to editable mode
                setSelectedHobbies(value ? value.split(';').map(Number) : []); // Parse existing hobbies into an array of numbers
                setModalVisible(true); // Open hobbies modal
              }else {
@@ -227,7 +245,22 @@ const handleValidateSelection = () => {
          ) : (
            <Text style={styles.menuText}>
              {field === 'dogHobbies'
-                          ? renderHobbies(user[field]) // Render hobbies if field is dogHobbies
+                          ? <TouchableOpacity onPress={() =>
+
+                           handleOpenCustomModal(
+                                      field === 'dogHobbies' ? 'Dog Hobbies' : field.replace('dog', ''), // Dynamic title
+                                      field === 'dogHobbies' ? renderHobbies(user[field]) : user[field] || 'Not specified' // Dynamic content
+                                    )
+                          }>
+                              <Text
+                                style={[styles.menuText, {maxWidth: 400  }]}
+                                numberOfLines={1}
+                                ellipsizeMode="tail"
+
+                              >
+                                {field === 'dogHobbies' ? renderHobbies(user[field]) : user[field] || 'Not specified'}
+                              </Text>
+                            </TouchableOpacity>// Render hobbies if field is dogHobbies
                           : field === 'dogAge'
                             ? formatAge(user[field])
                             : user[field] || 'Not specified'}
@@ -257,6 +290,13 @@ const handleValidateSelection = () => {
              <Icon name="pencil" size={20} color="blue" style={styles.icon} />
            </TouchableOpacity>
          )}
+
+            <CustomModal
+                 visible={customModalVisible}
+                 title={customModalTitle}
+                 content={customModalContent}
+                 onClose={handleCloseCustomModal}
+               />
        </View>
      );
    };
@@ -279,7 +319,7 @@ useEffect(() => {
   return (
     <View  style={{ flex: 1 }}>
 
-       <View style={[styles.menuContent, { backgroundColor: 'rgba(255, 192, 203, 0.8)'  }]}>
+       <View style={[styles.menuContent, { flex: 1 ,backgroundColor: 'rgba(255, 192, 203, 0.8)'  }]}>
                         <Text style={styles.menuTitle}>Doggie Profile</Text>
                         {/*renderField('Username', 'userName')*/}
                         {renderField( 'dogName')}
@@ -310,57 +350,18 @@ useEffect(() => {
 
 
 
-  <Animated.View style={[styles.menu, { flex: 1 }]}>
-{showPicker && (
-  <Modal transparent={true} animationType="fade" visible={showPicker}>
-    <View style={styles.overlay}>
-      <TouchableOpacity
-        style={styles.overlayBackground}
-        onPress={handleBackdropPress}
-      />
+ <PickerModal
+   showPicker={showPicker}
+   pickerType={pickerType}
+   ageUnit={ageUnit}
+   setAgeUnit={setAgeUnit}
+   selectedValue={selectedValue}
+   setSelectedValue={setSelectedValue}
+   numbers={numbers}
+   handleBackdropPress={handleBackdropPress}
+   handleValidateSelection={handleValidateSelection}
+ />
 
-      <View style={styles.pickerContainer}>
-        {/* Display Current Unit (Months or Years) */}
-        {pickerType === 'dogAge' && (
-          <View style={styles.switchWrapper}>
-
-            {/* Toggle Unit */}
-            <View style={styles.switchContainer}>
-              <Text style={styles.toggleText}>
-                {ageUnit === 'years' ? 'Years' : 'Months'}
-              </Text>
-
-              <Switch
-                value={ageUnit === 'years'}
-                onValueChange={(value) => setAgeUnit(value ? 'years' : 'months')}
-                thumbColor={ageUnit === 'years' ? '#4CAF50' : '#FFC0CB'}
-                trackColor={{ true: '#A5D6A7', false: '#FFCDD2' }}
-                style={styles.ageSwitch}
-              />
-            </View>
-          </View>
-        )}
-
-
-
-        {/* Wheel Picker */}
-        <WheelPicker
-          selectedItem={selectedValue - 1} // Adjust for zero-based index
-          data={numbers.map(String)} // Numbers as strings
-          onItemSelected={(index) => setSelectedValue(index + 1)} // Update temporary value
-          style={styles.wheel}
-        />
-
-        {/* Validation Icon */}
-        <TouchableOpacity onPress={handleValidateSelection} style={styles.validateButton}>
-          <Icon name="check" size={24} color="green" />
-          <Text style={styles.validateText}>Confirm</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
-  </Modal>
-)}
-    </Animated.View>
 
 
     </View>
@@ -370,154 +371,59 @@ useEffect(() => {
 
 
 
-
 const styles = StyleSheet.create({
-     overlayBackground: {
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)', // Grayed-out background
-    	 ...StyleSheet.absoluteFillObject,
-    	 flex:1
-      },
- pickerContainer: {
-    backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    width: 300,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
 
-  switchContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center', // Center the switch and label horizontally
-    marginTop: 10,
-  },
-
-ageSwitch:{
-        transform: [{ scale: 1.2 }],
+    fieldContainer: {
+      flexDirection: 'row', // Align text and input horizontally
+      justifyContent: 'space-between',
+      padding: 15, // Add more padding for spacing inside each field container
+      marginBottom: 10, // Adds space between fields
+      borderWidth: 1, // Border for each field
+      borderColor: '#ccc', // Light gray color for the border
+      borderRadius: 8, // Rounded corners for the border
+      backgroundColor: '#f9f9f9', // Light background for the field container
+      shadowColor: '#000', // Shadow for a lifted effect
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.1,
+      shadowRadius: 4, // Slight shadow for a more "card-like" look
     },
-
-
-      validateText: {
-          color: '#fff',
-          fontSize: 16,
-          fontWeight: 'bold',
-          marginLeft: 5,
-        },
-  container: {
-    flex: 1,
-    padding: 20,
-    backgroundColor: '#FFF',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 20,
-  },
-  fieldContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 10,
-  },
-  label: {
-    fontSize: 18,
-    flex: 1,
-  },
-  valueText: {
-    fontSize: 16,
-    flex: 2,
-    color: 'black',
-    textAlign: 'left',
-  },
-  inputField: {
-    borderBottomWidth: 1,
-    borderColor: '#ccc',
-    fontSize: 16,
-    flex: 2,
-  },
-  icon: {
-    marginLeft: 10,
-  },
-  menuText: {
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  popupContainer: {
-    position: 'absolute',
-    top: '10%',
-    left: '5%',
-    width: '90%',
-    height: '80%',
-    backgroundColor: 'white',
-    borderRadius: 15,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 5,
-    elevation: 10,
-    zIndex: 2000,
-    flex: 1
-  },
-  popupHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  headerText: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    textAlign: 'center',
-  },
-
-overlay: {
-  flex: 1,
-  backgroundColor: 'rgba(0, 0, 0, 0.5)', // Semi-transparent background
-  justifyContent: 'center', // Center vertically
-  alignItems: 'center', // Center horizontally
-},
-
-    menu: {
-
-      backgroundColor: 'rgba(255, 192, 203, 0.8)',
-      zIndex: 1000,
-
+    menuText: {
+      fontSize: 18,
+      fontWeight: '500',
+      color: 'black',
     },
-  menuContent: {
-
-    justifyContent: 'space-evenly',
-  },
-
- menuTitle: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-  },
-    validateButton: {
-        marginTop: 20,
-        backgroundColor: '#4CAF50',
-        paddingHorizontal: 20,
-        paddingVertical: 10,
-        borderRadius: 5,
-        flexDirection: 'row',
-        alignItems: 'center',
-      },
-   wheel: {
-      width: 250,
-      height: 250,
-
+    menuContent: {
+      padding: 15,
+      backgroundColor: 'white',
+    },
+    menuTitle: {
+      fontSize: 24,
+      fontWeight: 'bold',
+      marginBottom: 15,
+    },
+    inputField: {
+      borderBottomWidth: 1,
+      borderColor: 'gray',
+      width: 200,
+      height: 40, // Adjust the height to make it more compact
+      marginLeft: 10,
+      paddingLeft: 5,
+    },
+    icon: {
+      marginLeft: 10,
+    },
+    modalContainer: {
+      flex: 1,
+      justifyContent: 'center',
+      alignItems: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.5)', // Overlay background for modal
+    },
+    modalContent: {
+      backgroundColor: 'white',
+      padding: 20,
+      borderRadius: 10,
+      width: '80%',
+      alignItems: 'center',
     },
 });
 
