@@ -8,6 +8,7 @@ import { useMessagePopup } from '@/services';
 import { startConversation } from '@/redux/slices/messagingSlice';
 
 
+
 // TypeScript Interfaces
 interface Notification {
   id: string;
@@ -53,6 +54,8 @@ const handleFriendRequestResponse = (
       relatedUsername: notification.relatedUsername,
     },
   });*/
+  console.log('dispatch(updateNotificationResponse({'+notification.id, response, newText, username,notification.relatedUsername );
+
    dispatch(updateNotificationResponse({ notificationId: notification.id, response, newText, username,  relatedUsername: notification.relatedUsername }));
   Toast.hide(); // Hide the toast
 };
@@ -104,7 +107,7 @@ export const notifyFriendRequest = (
       text1: "Multiple Friend Requests",
       text2: `You have ${count} friend requests. Go check them out.`,
       autoHide: true,
-      visibilityTime: 2000,
+      visibilityTime: 4000,
     });
   }
 };
@@ -146,7 +149,7 @@ export const notifyEvent = (
         },
       },
       autoHide: true,
-      visibilityTime: 2000,
+      visibilityTime: 4000,
     });
   });
 };
