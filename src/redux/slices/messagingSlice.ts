@@ -3,7 +3,6 @@ import { createSlice, PayloadAction, createAsyncThunk  } from '@reduxjs/toolkit'
 import { AppThunk } from '@/redux/store';
 import {
   getAllConversations as gAC,
-  fetchUsrs as apiFetchUsers,
   startConversation as apiStartConversation,
   sendMessage as apiSendMessage,
   fetchMessages as apiFetchMessages,
@@ -188,11 +187,6 @@ addConversation: (state, action: PayloadAction<Conversation>) => {
                   state.conversations[message.conversationId].hasUnread = true;
                 }
       }
-    },
-    setUsers: (state, action: PayloadAction<User[]>) => {
-      action.payload.forEach(user => {
-        state.users[user.id] = user;
-      });
     },
 
 /*
@@ -469,16 +463,6 @@ export const fetchAllConversations = (username: string): AppThunk => async dispa
   }
 };
 
-export const fetchUsers = (): AppThunk => async dispatch => {
-  try {
-    const response = await apiFetchUsers();
-    const users: User[] = response;
-    dispatch(setUsers(users));
-  } catch (error) {
-    console.error('Error fetching users:', error);
-    throw error;
-  }
-};
 
 export const updateMessagesAsReadAPI = createAsyncThunk(
   'messaging/updateMessagesAsRead', // Action name

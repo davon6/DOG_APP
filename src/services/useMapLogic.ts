@@ -35,6 +35,60 @@ const [shouldFocusMap, setShouldFocusMap] = useState(true);
     };
   };
 
+  // Helper to handle location updates
+  const handleLocationUpdate = (position: Geolocation.GeoPosition, shouldFocusMap: boolean) => {
+    const newLocation = {
+      latitude: position.coords.latitude,
+      longitude: position.coords.longitude,
+    };
+
+    setLocation(newLocation); // Update the location state
+    updateZone(newLocation); // Update the zone
+
+    if (shouldFocusMap) {
+      setTimeout(() => setShouldFocusMap(false), 100); // Delay toggling focus map
+    }
+  };
+
+  // Helper to update the zone
+  const updateZone = (newLocation: Location) => {
+    const currentZone = calculateZone(newLocation, 0.0922, 0.0421); // Adjust deltas if needed
+    setZone(currentZone);
+  };
+
+  // Optional: Handle distance (if needed)
+  const handleDistance = (newLocation: Location) => {
+    if (previousLocation) {
+      const distance = haversine(
+        previousLocation.latitude,
+        previousLocation.longitude,
+        newLocation.latitude,
+        newLocation.longitude
+      );
+
+      if (distance > 100) {
+        console.log(`Moved over 100 meters! Distance: ${distance.toFixed(2)} meters`);
+      }
+    }
+    setPreviousLocation(newLocation); // Update the previous location
+  };
+  useEffect(() => {
+    const watchId = Geolocation.watchPosition(
+      (position) => {
+        handleLocationUpdate(position, shouldFocusMap); // Delegate to the helper function
+      },
+      (error) => {
+        Alert.alert("Error", `Unable to fetch location: ${error.message}`);
+      },
+      { enableHighAccuracy: true, distanceFilter: 10, interval: 10000 } // Adjust interval as needed
+    );
+
+    return () => Geolocation.clearWatch(watchId); // Cleanup watcher
+  }, [shouldFocusMap]);
+
+
+
+/*
   useEffect(() => {
 
 
@@ -46,7 +100,7 @@ const [shouldFocusMap, setShouldFocusMap] = useState(true);
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
         };
-/*
+//we removed
         if (previousLocation) {
           const distance = haversine(
             previousLocation.latitude,
@@ -59,10 +113,10 @@ const [shouldFocusMap, setShouldFocusMap] = useState(true);
             console.log(`Moved over 100 meters! Distance: ${distance.toFixed(2)} meters`);
           }
         }
-
+//til here
         setPreviousLocation(newLocation); // Update the previous location
 
-        */
+
         setLocation(newLocation); // Set the new location
 
         const currentZone = calculateZone(newLocation, 0.0922, 0.0421); // Adjust deltas if needed
@@ -82,6 +136,8 @@ const [shouldFocusMap, setShouldFocusMap] = useState(true);
 
     return () => Geolocation.clearWatch(watchId);
   }, [previousLocation,shouldFocusMap]);
+
+  */
 
   return  { location , zone, shouldFocusMap };
 };

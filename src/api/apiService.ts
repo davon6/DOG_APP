@@ -5,7 +5,7 @@ import { navigate } from '@/navigators/navigationHelper';
 
 const api = axios.create({
   //baseURL: 'http://172.20.10.2:3000',
-  baseURL: 'https://eabf-2a04-cec0-1003-a95b-85a4-3455-4d2f-66f0.ngrok-free.app',
+  baseURL: 'https://e748-2a04-cec0-11ff-d442-65b7-1d29-eab5-c37.ngrok-free.app',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -59,7 +59,7 @@ api.interceptors.response.use(
 
 const refreshTokenRequest = async (refreshToken: string) => {
   try {
-    const response = await api.post('user/token/refresh', { refreshToken });
+    const response = await api.post('/api/users/token/refresh', { refreshToken });
     return response.data.accessToken;
   } catch (error) {
     console.error('Error refreshing token:', error.response ? error.response.data : error);
@@ -89,18 +89,6 @@ export const sendMessage = async (conversationId: string, senderUsername: string
 
   } catch (error) {
     console.error('Error sending message:', error);
-    throw error;
-  }
-};
-
-
-// Fetch all users (GET request)
-export const fetchUsrs = async () => {
-  try {
-    const response = await api.get('/users');
-    return response.data;
-  } catch (error) {
-    console.error('Axios error:', error);
     throw error;
   }
 };

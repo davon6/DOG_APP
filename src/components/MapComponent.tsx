@@ -4,11 +4,15 @@ import { View, Text, ActivityIndicator, Modal, TouchableWithoutFeedback } from '
 import UserInfoPopup from './UserInfoPopUp';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
-const MapComponent = ({ location, users, zone, shouldFocusMap, onRadiusChange, users2, username  }) => {
+const MapComponent = ({ location, zone, shouldFocusMap, onRadiusChange, users2, username  }) => {
 
     const [previousRegion, setPreviousRegion] = useState(null);
 const [loadingUsers, setLoadingUsers] = useState(true);
 const [selectedUser, setSelectedUser] = useState(null);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [userLocation, setUserLocation] = useState<Region | null>(null);
+
 
 const handleMapPress = () => {
     setSelectedUser(null); // Close popup when tapping on the map
@@ -17,6 +21,9 @@ const handleMapPress = () => {
   useEffect(() => {
     // If users array is populated, set loading state to false after a short delay
     if (users2 && users2.length > 0) {
+
+
+          console.log("--------------->>>>>>>>>>>>>>>>>>>>>>>>>>> users2 maybe a disconnect");
 /*
         console.log("--------------->>>>>>>>>>>>>>>>>>>>>>>>>>> users2 in mapComponenet ",users2)
 
@@ -61,6 +68,8 @@ console.log("User coordinates:", users2[0].lat, users2[0].long);
           longitudeDelta: 0.0421,
         }
   );
+
+
 
   // Handle region change on user interaction
   const handleRegionChangeComplete = (region) => {
@@ -130,6 +139,7 @@ onRadiusChange(radiusKm);
 
 
   // Set map focus when `shouldFocusMap` is true
+
   React.useEffect(() => {
     if (shouldFocusMap && location) {
       setMapRegion({
@@ -166,7 +176,7 @@ return (
                  >
                    <View style={{ alignItems: 'center' }}>
                      {/* Awesome Icon */}
-                     <Icon name="paw" size={45} color="orange" />
+                     <Icon name="paw" size={45}  color={user.isConnected ? "orange" : "gray"} />
                      <Text style={{ fontSize: 12 }}>{user.dog.dogName}</Text>
                    </View>
                  </Marker>

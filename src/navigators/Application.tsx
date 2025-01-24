@@ -19,7 +19,6 @@ function ApplicationNavigator() {
         <Stack.Navigator key={variant} screenOptions={{ headerShown: false }} initialRouteName="Welcome">
           <Stack.Screen name="Example" component={Example} />
           <Stack.Screen name="Welcome" component={Welcome} />
-          <Stack.Screen name="SignIn" component={SignIn} />
           <Stack.Screen name="SignUp" component={SignUp} />
           <Stack.Screen name="SignUp_2" component={SignUp_2} />
         </Stack.Navigator>

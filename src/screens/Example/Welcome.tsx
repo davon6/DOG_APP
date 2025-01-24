@@ -15,7 +15,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserContext } from '@/services/Context';
 import { useDispatch } from 'react-redux';
-import { fetchAllConversations, fetchUsers } from '@/redux/slices/messagingSlice';
+import { fetchAllConversations } from '@/redux/slices/messagingSlice';
 import { fetchNotifications } from '@/redux/slices/notificationsSlice';
 import { getFriends as getFri, fetchNotificationsApi } from '@/api/apiService';
 
@@ -106,6 +106,9 @@ fetch(`${API_URL}/test`)
         password,
       });
 
+
+
+
       await AsyncStorage.setItem('userToken', response.data.token);
       await AsyncStorage.setItem('refreshToken', response.data.refreshToken);
       await AsyncStorage.setItem('user_info', JSON.stringify(response.data.dogInfo));
@@ -116,9 +119,7 @@ fetch(`${API_URL}/test`)
       };
 
       updateUser(finalUser);
-
       // Dispatch the actions after successful sign-in
-      dispatch(fetchUsers());
       dispatch(fetchAllConversations(username));
       dispatch(fetchNotifications(username));
 

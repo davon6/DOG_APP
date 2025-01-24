@@ -2,7 +2,7 @@ import React, { useRef, useEffect, useState, useContext } from 'react';
 import { View, StyleSheet, TouchableOpacity, Animated, Dimensions, Alert, ActivityIndicator } from 'react-native';
 import Geolocation from 'react-native-geolocation-service';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { useExampleLogic } from '@/hooks/useExampleLogic';
+//import { useExampleLogic } from '@/hooks/useExampleLogic';
 import MapComponent from '@/components/MapComponent';
 import SlidingMenu from '@/components/SlidingMenu';
 import NewsFeedMenu from '@/components/NewsFeedMenu';
@@ -16,16 +16,18 @@ import { useLogOut, useMapLogic } from '@/services';
 import { useWebSocket } from '@/services/wsSocket';
 const { width } = Dimensions.get('window');
 
+type Friend = {
+  username: string;
+};
+
 const App = (data) => {
 
-    //const [location, setLocation] = useState(null);
     const [activeMenu, setActiveMenu] = useState(null);
     const [menuAnim] = useState(new Animated.Value(-width));
     const [newsFeedMenuOpen, setNewsFeedMenuOpen] = useState(false);
-    //const notifications = useSelector((state: RootState) => state.notifications.list);
     const dispatch = useDispatch(); // Use dispatch here
     const [isLoggingOut, setIsLoggingOut] = useState(false);
-    const { users, loading } = useExampleLogic();
+    //const { users, loading } = useExampleLogic();
     const { logOut } = useLogOut();
     const [showSignOutPopup, setShowSignOutPopup] = useState(false);
     const [radius, setRadius] = useState<number>(0);
@@ -33,58 +35,41 @@ const App = (data) => {
     const { location, zone, shouldFocusMap  } = useMapLogic();
 
      const handleRadiusUpdate = (newRadius: number) => {
-       // console.log("Received radius from MapComponent:", newRadius);
         setRadius(newRadius);  // Set the radius in the parent state
       };
 
-
-   // console.log(JSON.stringify(location));
 
  const username = data.route.params[0];
   const { isConnected, closeWebSocket, friend, users2 } = useWebSocket(
     'wss://e748-2a04-cec0-11ff-d442-65b7-1d29-eab5-c37.ngrok-free.app',
     username, location, radius
   );
-const [friends, setFriends] = useState(data.route.params[1] || {});
-
+  const [friends, setFriends] = useState<Friend[]>(
+    Array.isArray(data.route.params?.[1]) ? data.route.params[1] : []
+  );
 const [notifications, setNotifications] = useState(data.route.params[2] || {});
-
-/*
-  useEffect(() => {
-    // If users array is populated, set loading state to false after a short delay
-    if (users2 && users2.length > 0) {
-
-        console.log("--------------->>>>>>>>>>>>>>>>>>>>>>>>>>> users2 ",users2)
-
-    }
-  }, [users2]);
-*/
 
 useEffect(() => {
   if (data) {
 
-    //  console.log("oving slooowly --->"+JSON.stringify(notifications));
-
     // Call notifyFriendRequest only once
     notifyFriendRequest(dispatch, data.route.params[0], notifications);}
 }, [dispatch, data.route.params[0], notifications]);
-
-// console.log("so this is the start"+ JSON.stringify(friends));
-
 useEffect(() => {
+    if (friend) {
+      setFriends((prevFriends) => {
+        // Ensure prevFriends is always an array
+        const friendsArray = Array.isArray(prevFriends) ? prevFriends : [];
+        // Avoid adding duplicates
+        const isDuplicate = friendsArray.some((f) => f.username === friend);
+        if (isDuplicate) return friendsArray;
 
-  if (friend) {
-    setFriends((prevFriends) => {
-      // Avoid adding duplicates
-      const isDuplicate = prevFriends.some((f) => f.username === friend);
-      if (isDuplicate) return prevFriends;
-
-      // Add the new friend
-      return [...prevFriends, { username: friend }];
-    });
-    console.log("Updated friends: ", JSON.stringify({ friends }));
-  }
-}, [friend]);
+        // Add the new friend
+        return [...friendsArray, { username: friend }];
+      });
+      console.log("Updated friends: ", JSON.stringify(friends));
+    }
+  }, [friend]);
 
 
   const handleLogout = async () => {
@@ -97,46 +82,6 @@ useEffect(() => {
     setIsLoggingOut(false);
    // await new Promise((resolve) => setTimeout(resolve, 500));
   };
-/*
-useEffect(() => {
-  if (data) {
-
-      console.log("oving slooowly --->"+JSON.stringify(notifications));
-
-    // Call notifyFriendRequest only once
-   // notifyFriendRequest(dispatch, data.route.params[0], notifications);
-
-
-         console.log("and the friends --->"+JSON.stringify(data.route.params[1]));
-  }
-
-
-  if(friend){friends={
-                     ...friends,
-                     friend
-                   };
-
-               console.log(" the mess "+ JSON.stringify(friends))
-               };
-}, [dispatch, data.route.params[0], notifications]);
-*/
-/*
-  useEffect(() => {
-    const watchId = Geolocation.watchPosition(
-      (position) => {
-        setLocation({
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-      },
-      (error) => {
-        Alert.alert("Error", "Unable to fetch location: " + error.message);
-      },
-      { enableHighAccuracy: true, distanceFilter: 10, interval: 10000 }
-    );
-
-    return () => Geolocation.clearWatch(watchId);
-  }, []);*/
 
    const toggleNewsFeedMenu = () => {
       setNewsFeedMenuOpen(!newsFeedMenuOpen);
@@ -169,10 +114,8 @@ useEffect(() => {
     <View style={styles.container}>
 
     {/*come on*/}
-      <MapComponent location={location} users={users} zone ={zone} shouldFocusMap={shouldFocusMap }
+      <MapComponent location={location} zone ={zone} shouldFocusMap={shouldFocusMap }
        onRadiusChange={handleRadiusUpdate} users2={users2} username={username}/>
-
-      {loading && <ActivityIndicator size="large" color="#0000ff" style={styles.loader} />}
 
       <View style={styles.iconContainer}>
         <TouchableOpacity onPress={() => handleIconPress('user')} style={styles.iconWrapper}>
