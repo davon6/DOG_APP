@@ -21,7 +21,7 @@ npm-debug.log
 yarn-debug.log
 yarn-error.log
 *.log
-
+android
 # Metro Bundler cache
 /react-native/metro-cache/
 /react-native/packager-info.json

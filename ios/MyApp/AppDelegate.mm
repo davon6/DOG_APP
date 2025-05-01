@@ -1,12 +1,13 @@
 #import "AppDelegate.h"
 
 #import <React/RCTBundleURLProvider.h>
+#include "char_traits_fix.h"
 
 @implementation AppDelegate
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
-  self.moduleName = @"MyApp";
+  self.moduleName = @"PawPal";//MyApp
   // You can add your custom initial props in the dictionary below.
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{};
@@ -21,11 +22,15 @@
 
 - (NSURL *)bundleURL
 {
+ // return [NSURL URLWithString:@"http://172.23.128.54:8082/index.bundle?platform=ios"];
+ // return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
+  return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
+  /*
 #if DEBUG
   return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
 #else
   return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
-#endif
+#endif*/
 }
 
 @end
