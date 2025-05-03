@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { TextInput, View, Text, TouchableOpacity, Modal, Switch, StyleSheet, Animated } from 'react-native';
-import { WheelPicker } from 'react-native-wheel-picker-android';
 import HobbiesModal from './HobbiesModal';
 import { updateUser as updtU } from '@/api/apiService';
 import Icon from 'react-native-vector-icons/FontAwesome';

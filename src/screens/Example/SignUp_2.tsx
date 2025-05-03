@@ -73,7 +73,11 @@ const SignUp_2Screen: React.FC<SignUp_2ScreenProps> = ({ navigation }) => {
 
 console.log("await axios.post('http://172.20.10.8:3000/api/users/signup'")
 
-      const response = await axios.post('https://e748-2a04-cec0-11ff-d442-65b7-1d29-eab5-c37.ngrok-free.app/api/users/signup', {
+      const response = await axios.post(
+
+/*'https://e748-2a04-cec0-11ff-d442-65b7-1d29-eab5-c37.ngrok-free.app/api/users/signup'*/
+'https://dog-server-oqyd.onrender.com/api/users/signup'
+, {
         username,
         email,
         password,

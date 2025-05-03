@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Modal, TouchableOpacity, Text, Switch, StyleSheet } from 'react-native';
-import { WheelPicker } from 'react-native-wheel-picker-android';
+import { WheelPicker } from '@gregfrench/react-native-wheel-picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const PickerModal = ({

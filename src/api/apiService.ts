@@ -5,7 +5,11 @@ import { navigate } from '@/navigators/navigationHelper';
 
 const api = axios.create({
   //baseURL: 'http://172.20.10.2:3000',
-  baseURL: 'https://e748-2a04-cec0-11ff-d442-65b7-1d29-eab5-c37.ngrok-free.app',
+ // baseURL: 'https://e748-2a04-cec0-11ff-d442-65b7-1d29-eab5-c37.ngrok-free.app'
+
+ baseURL: 'https://dog-server-oqyd.onrender.com'
+,
+
   headers: {
     'Content-Type': 'application/json',
   },

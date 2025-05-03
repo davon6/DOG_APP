@@ -4,7 +4,7 @@ import { Button, Snackbar, Avatar, Switch  } from 'react-native-paper';
 import { Picker } from '@react-native-picker/picker'; // Native Picker for dropdowns
 import { UserContext } from '@/services/Context';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { WheelPicker } from 'react-native-wheel-picker-android';
+import { WheelPicker } from '@gregfrench/react-native-wheel-picker';
 
 const races = [
   'Labrador', 'Bulldog', 'Poodle', 'Golden Retriever', 'Beagle',

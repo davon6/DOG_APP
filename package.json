@@ -14,6 +14,7 @@
     "postinstall": "npx patch-package"
   },
   "dependencies": {
+    "@gregfrench/react-native-wheel-picker": "^1.2.16",
     "@react-native-async-storage/async-storage": "^2.0.0",
     "@react-native-masked-view/masked-view": "^0.3.1",
     "@react-native-picker/picker": "^2.8.1",

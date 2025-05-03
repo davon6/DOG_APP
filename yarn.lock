@@ -986,6 +986,13 @@
 "@eslint/js@8.57.0":
   version "8.57.0"
 
+"@gregfrench/react-native-wheel-picker@^1.2.16":
+  version "1.2.16"
+  resolved "https://registry.npmmirror.com/@gregfrench/react-native-wheel-picker/-/react-native-wheel-picker-1.2.16.tgz"
+  integrity sha512-GojKngBkcIi34bJ2Sq71dgEuyJ8aLASugR8u3zUcqNoB9Rs7iJQBgZm5lCX5K4fzvUqepGaGL45FQrsJzBAt1g==
+  dependencies:
+    "@react-native-picker/picker" "^1.9.4"
+
 "@hapi/hoek@^9.0.0", "@hapi/hoek@^9.3.0":
   version "9.3.0"
   resolved "https://registry.npmjs.org/@hapi/hoek/-/hoek-9.3.0.tgz"
@@ -1580,6 +1587,11 @@
 
 "@react-native-masked-view/masked-view@^0.3.1":
   version "0.3.1"
+
+"@react-native-picker/picker@^1.9.4":
+  version "1.16.8"
+  resolved "https://registry.npmmirror.com/@react-native-picker/picker/-/picker-1.16.8.tgz"
+  integrity sha512-pacdQDX6V6EmjF+HoiIh6u++qx4mTK0WnhgUHRc01B+Qt5eoeUwseBqmqfTSXTx/aHDEd6PiIw7UGvKgFoqgFQ==
 
 "@react-native-picker/picker@^2.8.1":
   version "2.8.1"
