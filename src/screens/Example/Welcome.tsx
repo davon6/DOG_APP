@@ -21,6 +21,23 @@ import { getFriends as getFri, fetchNotificationsApi } from '@/api/apiService';
 
 
 const Welcome: React.FC = () => {
+
+  const originalFetch = fetch;
+  global.fetch = async (url, options) => {
+    console.log("📡 FETCH to:", url);
+    return originalFetch(url, options);
+  };
+
+  
+
+axios.interceptors.request.use(request => {
+  console.log("📡 AXIOS request to:", request.url);
+  return request;
+});
+
+
+
+
   const navigation = useNavigation();
   const [username, setUsername] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -32,13 +49,6 @@ const Welcome: React.FC = () => {
   const [treeMovement] = useState(new Animated.Value(0)); // For horizontal movement of trees
   const [treeScale] = useState(new Animated.Value(1)); // For scaling trees to create depth
 
-/*
-const API_URL = 'http://localhost:3000';
-fetch(`${API_URL}/test`)
-  .then(response => response.json())
-  .then(data => console.log(data))
-  .catch(error => console.error(error));
-*/
 
   useEffect(() => {
     if (password && typingTimeout) {

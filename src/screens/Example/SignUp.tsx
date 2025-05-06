@@ -4,7 +4,9 @@ import { Button, Snackbar, Avatar, Switch  } from 'react-native-paper';
 import { Picker } from '@react-native-picker/picker'; // Native Picker for dropdowns
 import { UserContext } from '@/services/Context';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import { WheelPicker } from '@gregfrench/react-native-wheel-picker';
+import WheelPicker from '@quidone/react-native-wheel-picker';
+import DropDownPicker from 'react-native-dropdown-picker';
+
 
 const races = [
   'Labrador', 'Bulldog', 'Poodle', 'Golden Retriever', 'Beagle',
@@ -51,6 +53,26 @@ const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
   const [color, setColor] = useState<string>('');
   const [weightUnit, setWeightUnit] = useState<string>('pounds');
   const weightOptions = Array.from({ length: 200 }, (_, i) => (i + 1).toString());
+  const [raceOpen, setRaceOpen] = useState(false);
+const [raceValue, setRaceValue] = useState(null);
+const [raceItems, setRaceItems] = useState(
+  races.map(r => ({ label: r, value: r }))
+);
+const [personalityOpen, setPersonalityOpen] = useState(false);
+const [personalityValue, setPersonalityValue] = useState(null);
+const [personalityItems, setPersonalityItems] = useState(
+  personalities.map(p => ({ label: p, value: p }))
+);
+const [selectedSizeIndex, setSelectedSizeIndex] = useState(0);  // or null if you prefer
+//const sizeLabels = sizes?.map(s => s.label) || [];
+const sizeLabels = Array.isArray(sizes) && sizes.length ? sizes.map(s => s.label) : ['Tiny', 'Small', 'Medium'];
+
+
+console.log('sizeLabels', sizeLabels);
+console.log('sizes', sizes);
+
+
+
 
   const { user, updateUser } = useContext(UserContext);
   const [dogSex, setDogSex] = useState<string>('Male');
@@ -162,7 +184,7 @@ const sex = dogSex=="Male"? 1: 0;
                   onValueChange={handleSexToggle}
                   thumbColor={dogSex === 'Male' ? '#4CAF50' : '#FFC0CB'}
                   trackColor={{ true: '#A5D6A7', false: '#FFCDD2' }}
-                   style={styles.sexSwitch}
+                  style={[styles.sexSwitch, { transform: [{ scaleX: 1 }, { scaleY: 1 }] }]}
                 />
                 <Text style={styles.menuText}>{dogSex}</Text>
               </View>
@@ -171,82 +193,87 @@ const sex = dogSex=="Male"? 1: 0;
       {/* Weight and Age on Same Row */}
       <View style={styles.weightAgeContainer}>
         {/* Weight Picker */}
-        <View style={styles.weightContainer}>
-          <Text style={styles.label}>Weight</Text>
-          <WheelPicker
-            selectedItem={weight - 1} // Use index for selected weight
-            data={weightOptions} // Weight options as strings
-            onItemSelected={(index) => setWeight(parseInt(weightOptions[index], 10))} // Update state
-            style={styles.wheel}
-            itemTextSize={20} // Adjust text size
-            selectedItemTextSize={24} // Highlight selected item size
-            selectedItemTextColor="#FF4500" // Highlight color
-            indicatorColor="#FF4500" // Line color
-            itemTextColor="#000000" // Regular text color
-          />
-        </View>
-
-      {/* Age Picker */}
-      <View style={styles.ageContainer}>
-        <Text style={styles.label}>Age</Text>
         <WheelPicker
-          selectedItem={age - 1} // Adjusted index for selected item
-          data={Array.from({ length: 20 }, (_, i) => (i + 1).toString())} // Age options (1-20)
-          onItemSelected={(index) => setAge(index + 1)} // Adjusted index for selected age
-          style={styles.wheel}
-          itemTextSize={20} // Adjust text size
-          selectedItemTextSize={24} // Highlight selected item size
-          selectedItemTextColor="#FF4500" // Highlight color
-          indicatorColor="#FF4500" // Line color
-          itemTextColor="#000000" // Regular text color
-        />
-      </View>
+  data={weightOptions.map(w => ({ label: w, value: Number(w) }))} // expects array of {label, value}
+  value={weight}
+  onValueChanged={({ item }) => setWeight(item.value)}
+  visibleRest={2}
+  itemHeight={40}
+  style={styles.wheel}
+/>
 
-      {/* Age Unit Picker */}
-      <View style={styles.ageContainer}>
-        <Text style={styles.label}>Unit</Text>
-        <WheelPicker
-          selectedItem={ageUnits.indexOf(ageUnit)} // Ensure index is correct for unit
-          data={ageUnits} // Months or Years
-          onItemSelected={(index) => setAgeUnit(ageUnits[index])} // Update age unit
-          style={styles.wheelUnit}
-          itemTextSize={20} // Adjust text size
-          selectedItemTextSize={24} // Highlight selected item size
-          selectedItemTextColor="#FF4500" // Highlight color
-          indicatorColor="#FF4500" // Line color
-          itemTextColor="#000000" // Regular text color
-        />
-      </View>
+
+<WheelPicker
+  data={Array.from({ length: 20 }, (_, i) => ({ label: (i+1).toString(), value: i+1 }))}
+  value={age}
+  onValueChanged={({ item }) => setAge(item.value)}
+  visibleRest={2}
+  itemHeight={40}
+  style={styles.wheel}
+/>
+
+
+<WheelPicker
+  data={ageUnits.map(u => ({ label: u, value: u }))}
+  value={ageUnit}
+  onValueChanged={({ item }) => setAgeUnit(item.value)}
+  visibleRest={2}
+  itemHeight={40}
+  style={styles.wheelUnit}
+/>
+
       </View>
 
 
 
       {/* Race Dropdown */}
       <Text style={styles.label}>Race</Text>
-      <Picker selectedValue={race} onValueChange={setRace} style={styles.picker}>
-        <Picker.Item label="Select Dog Race" value="" />
-        {races.map((r) => (
-          <Picker.Item key={r} label={r} value={r} />
-        ))}
-      </Picker>
+   
+<DropDownPicker 
+listMode="SCROLLVIEW"
+ style={styles.picker}
+  open={raceOpen}
+  value={race}
+  items={races.map(r => ({ label: r, value: r }))}
+  setOpen={setRaceOpen}
+  setValue={setRace}
+  setItems={setRaceItems}
+/>
+
+
 
       {/* Size Dropdown */}
-      <Text style={styles.label}>Size</Text>
-      <Picker selectedValue={size} onValueChange={setSize} style={styles.picker}>
-        <Picker.Item label="Select Size" value="" />
-        {sizes.map((s) => (
-          <Picker.Item key={s.value} label={s.label} value={s.value} />
-        ))}
-      </Picker>
+   <Text style={styles.label}>Size</Text>
+<View style={{ height: 180, justifyContent: 'center', alignItems: 'center' }}>
+<WheelPicker
+  data={sizes.map(s => ({ label: s.label, value: s.value }))}
+  selectedValue={size}
+  onValueChanged={({ item }) => {
+    setSize(item.value);
+  }}
+  visibleRest={2}
+  itemHeight={40}
+  style={{ width: 200, height: 180 }}
+/>
+
+
+</View>
+
 
       {/* Personality Dropdown */}
       <Text style={styles.label}>Personality</Text>
-      <Picker selectedValue={personality} onValueChange={setPersonality} style={styles.picker}>
-        <Picker.Item label="Select Personality" value="" />
-        {personalities.map((p) => (
-          <Picker.Item key={p} label={p} value={p} />
-        ))}
-      </Picker>
+<DropDownPicker
+listMode="SCROLLVIEW"
+  open={personalityOpen}
+  value={personality}
+  items={personalityItems}
+  setOpen={setPersonalityOpen}
+  setValue={setPersonality}
+  setItems={setPersonalityItems}
+  placeholder="Select Personality"
+  style={styles.dropdown}
+/>
+
 
       {/* Hobbies/Activities Selection */}
 
@@ -462,10 +489,17 @@ labelHobbies : {
   icon: {
     marginRight: 10,
   },
-  sexSwitch: {
-      transform: [{ scaleX: 1.5 }, { scaleY: 1.5 }],
-      height:100
+sexSwitch: {
+  transform: [{ scaleX: 1 }, { scaleY: 1 }],
+  marginTop: 20,  // try 2 or 3 to fine-tune alignment
+},
+
+      dropdown: {
+        marginBottom: 20,
+        borderColor: '#ccc',
+        borderWidth: 1,
       },
+      
 });
 
 export default SignUpScreen;

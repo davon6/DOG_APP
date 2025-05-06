@@ -355,6 +355,14 @@ export const startConversation = (senderUsername: string, receiverUsername: stri
 };
 
 
+
+function formatDate(date: Date) {
+  const pad = (n: number) => n.toString().padStart(2, '0');
+
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}.${String(date.getMilliseconds()).padStart(3, '0')}Z`;
+}
+
+
 function toISOWithTimeZone(date, timeZone) {
   const options = {
     timeZone,
@@ -367,15 +375,21 @@ function toISOWithTimeZone(date, timeZone) {
     fractionalSecondDigits: 3
   };
 
-  const parts = new Intl.DateTimeFormat('en-GB', options)
-    .formatToParts(date)
-    .reduce((acc, part) => {
-      acc[part.type] = part.value;
-      return acc;
-    }, {});
+  const pad = (n: number) => n.toString().padStart(2, '0');
 
+  const parts = {
+    year: date.getUTCFullYear().toString(),
+    month: pad(date.getUTCMonth() + 1),
+    day: pad(date.getUTCDate()),
+    hour: pad(date.getUTCHours()),
+    minute: pad(date.getUTCMinutes()),
+    second: pad(date.getUTCSeconds()),
+  };
   return `${parts.year}-${parts.month}-${parts.day}T${parts.hour}:${parts.minute}:${parts.second}.${String(date.getMilliseconds()).padStart(3, '0')}Z`;
 }
+
+
+
 
 
 export const sendMessage = (conversationId: string, senderUsername: string, text: string): AppThunk => async dispatch => {

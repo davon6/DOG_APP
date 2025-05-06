@@ -1226,7 +1226,9 @@ PODS:
     - React-Core
   - RNCMaskedView (0.3.1):
     - React-Core
-  - RNCPicker (2.8.1):
+  - RNCPicker (2.11.0):
+    - React-Core
+  - RNDateTimePicker (8.3.0):
     - React-Core
   - RNGestureHandler (2.19.0):
     - DoubleConversion
@@ -1361,6 +1363,7 @@ DEPENDENCIES:
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - "RNCMaskedView (from `../node_modules/@react-native-masked-view/masked-view`)"
   - "RNCPicker (from `../node_modules/@react-native-picker/picker`)"
+  - "RNDateTimePicker (from `../node_modules/@react-native-community/datetimepicker`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
@@ -1501,6 +1504,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-masked-view/masked-view"
   RNCPicker:
     :path: "../node_modules/@react-native-picker/picker"
+  RNDateTimePicker:
+    :path: "../node_modules/@react-native-community/datetimepicker"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
   RNScreens:
@@ -1576,7 +1581,8 @@ SPEC CHECKSUMS:
   ReactCommon: 64c64f4ae1f2debe3fab1800e00cb8466a4477b7
   RNCAsyncStorage: 40367e8d25522dca9c3513c7b9815a184669bd97
   RNCMaskedView: de80352547bd4f0d607bf6bab363d826822bd126
-  RNCPicker: f89d06ded677f77224839bccc1ca18611948e54c
+  RNCPicker: 124b4fb5859ba1a3fd53a91e16d1e7a0fc016e59
+  RNDateTimePicker: 29264364ea7b8cc0fb355b3843cf276a4ff78966
   RNGestureHandler: aa1e54e4b477e5eb684bb448df963694d9e627dc
   RNScreens: a2d8a2555b4653d7a19706eb172f855657ac30d7
   RNVectorIcons: 6c795cacc9276decc31d8e1a139b9cc6fc0479ca
