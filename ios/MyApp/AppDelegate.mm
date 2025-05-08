@@ -23,7 +23,7 @@
 - (NSURL *)bundleURL
 {
  // return [NSURL URLWithString:@"http://169.254.103.18:8081/index.bundle?platform=ios"];
-  return [NSURL URLWithString:@"http://169.254.92.46:8081/index.bundle?platform=ios"];
+  return [NSURL URLWithString:@"http://172.23.128.54:8081/index.bundle?platform=ios"];
  // return [[RCTBundleURLProvider sharedSettings] jsBundleURLForBundleRoot:@"index"];
   //return [[NSBundle mainBundle] URLForResource:@"main" withExtension:@"jsbundle"];
   /*

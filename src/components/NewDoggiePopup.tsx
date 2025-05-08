@@ -60,9 +60,15 @@ const NewDoggiePopup: React.FC<NewDoggiePopupProps> = ({ onClose, onSelectDoggie
 
         const data = await getUsersFriendshipStatus(userName);  // Get friend statuses for a specific user
 
+        const normalizedData = data.map(d => ({
+          username: d.USERNAME,
+          dog_name: d.DOG_NAME,
+          relationship: d.relationship
+        }));
+        
        //console.log("here we goooo"+ JSON.stringify(data));
 
-        setFriendStatuses(data);  // Set the response data to the state
+        setFriendStatuses(normalizedData);  // Set the response data to the state
       } catch (err) {
         setError('Error fetching friend statuses.');
       } finally {
@@ -72,15 +78,17 @@ const NewDoggiePopup: React.FC<NewDoggiePopupProps> = ({ onClose, onSelectDoggie
 
     fetchFriendStatuses();
   }, []);  // Empty dependency array so this runs once when component mounts
+useEffect(() => {
+  if (!friendStatuses) return; // Optional if friendStatuses can be undefined
 
-  useEffect(() => {
-    // Filter doggies based on search input
-    setFilteredDoggies(
-      friendStatuses.filter((doggie) =>
-        doggie.username.toLowerCase().includes(doggieSearch.toLowerCase())
-      )
-    );
-  }, [doggieSearch, friendStatuses]);  // Re-run filter when search or friendStatuses changes
+  const searchValue = doggieSearch?.toLowerCase() || '';  // if empty string, no filtering will happen
+
+  setFilteredDoggies(
+    friendStatuses.filter((doggie) =>
+      doggie.username?.toLowerCase().includes(searchValue)
+    )
+  );
+}, [doggieSearch, friendStatuses]);
 
   const handleCheckUser = () => {
     Alert.alert('Search Doggies', `Searching for "${doggieSearch}" on server...`);
