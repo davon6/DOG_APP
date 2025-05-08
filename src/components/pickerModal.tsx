@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Modal, TouchableOpacity, Text, Switch, StyleSheet } from 'react-native';
-import { WheelPicker } from 'react-native-wheel-pick';
+import WheelPicker from '@quidone/react-native-wheel-picker';
 import Icon from 'react-native-vector-icons/FontAwesome';
 
 const PickerModal = ({
@@ -44,12 +44,13 @@ const PickerModal = ({
 
           {/* Wheel Picker */}
           <WheelPicker
-            selectedItem={selectedValue - 1} // Adjust for zero-based index
-            data={numbers.map(String)} // Numbers as strings
-            onItemSelected={(index) => setSelectedValue(index + 1)} // Update temporary value
+            data={numbers.map((num) => ({ label: num.toString(), value: num }))}
+            value={selectedValue}
+            onValueChanged={({ item }) => setSelectedValue(item.value)}
+            visibleRest={2}
+            itemHeight={40}
             style={styles.wheel}
           />
-
           {/* Validation Icon */}
           <TouchableOpacity onPress={handleValidateSelection} style={styles.validateButton}>
             <Icon name="check" size={24} color="green" />
