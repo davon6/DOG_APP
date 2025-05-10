@@ -169,17 +169,24 @@ return (
       {/* Render User Markers with Custom Icons */}
              {!loadingUsers &&
                users2.map((user) => (
-                 <Marker
-                   key={user.username}
-                   coordinate={{ latitude: user.lat, longitude: user.long }}
-                   onPress={() => setSelectedUser(user)} // Show popup when marker is pressed
-                 >
-                   <View style={{ alignItems: 'center' }}>
-                     {/* Awesome Icon */}
-                     <Icon name="paw" size={45}  color={user.isConnected ? "orange" : "gray"} />
-                     <Text style={{ fontSize: 12 }}>{user.dog.dogName}</Text>
-                   </View>
-                 </Marker>
+                <Marker
+                key={user.username}
+                coordinate={{ latitude: user.lat, longitude: user.long }}
+                onCalloutPress={() => setSelectedUser(user)}
+              >
+                <View style={{ alignItems: 'center' }}>
+                  
+                </View>
+              
+                <Callout tooltip>
+                  <View>
+                  <Icon name="paw" size={45} color={user.isConnected ? "orange" : "gray"} />
+           
+                    <Text>{user.dog.dogName}</Text>
+                  </View>
+                </Callout>
+              </Marker>
+              
                ))}
     </MapView>
 

@@ -149,8 +149,11 @@ const notificationSlice = createSlice({
 
           console.log("we get here"+ JSON.stringify( action.payload));
 
+
+          console.log("we get here"+ JSON.stringify( state.list));
+
         const { notificationId, newText } = action.payload;
-        const notification = state.list.find((n) => n.id === notificationId);
+        const notification = state.list.notifications.find((n) => n.id === notificationId);
         if (notification) {
           notification.text = newText; // Update the notification text dynamically
           notification.responded = true; // Mark as responded

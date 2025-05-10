@@ -141,9 +141,13 @@ axios.interceptors.request.use(request => {
 
       const friends = await getFri(username);
 
-console.log("arriving friends desserves a check + "+JSON.stringify(friends));
+//console.log("arriving friends desserves a check + "+JSON.stringify(friends));
 
       const notifications = await fetchNotificationsApi(username);
+
+
+      console.log("arriving friends desserves a check + "+JSON.stringify(notifications));
+
 
       const data = [username, friends, notifications];
       navigation.navigate('Example', data);

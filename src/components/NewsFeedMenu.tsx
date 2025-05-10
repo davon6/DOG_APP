@@ -8,7 +8,7 @@ const { width } = Dimensions.get('window');
 
 const NewsFeedMenu = ({ isOpen, toggleMenu, username /*, notifications*/ }) => {
 
-    const notifications = useSelector((state) => state.notifications.list); // Subscribe to Redux notifications
+    const notifications = useSelector((state) => state.notifications.list.notifications); // Subscribe to Redux notifications
 
  // console.log("jesus where are notifcation"+JSON.stringify(notifications));
 
@@ -19,7 +19,9 @@ const NewsFeedMenu = ({ isOpen, toggleMenu, username /*, notifications*/ }) => {
 
   // Fetch notifications directly from Redux store
 
-  //console.log('Notifications from Redux store:', notifications);
+  console.log('Notifications from Redux store:----',notifications );
+
+  
 
   useEffect(() => {
     if (isOpen) {
@@ -40,20 +42,21 @@ const NewsFeedMenu = ({ isOpen, toggleMenu, username /*, notifications*/ }) => {
   // Friend request response handler
   const handleFriendRequestResponse = (notificationId: number, response: 'accept' | 'decline') => {
     const notification = notifications.find((n) => n.id === notificationId);
-
-console.log("allright handleFriendRequestResponse------------->>>>");
+  
 
     if (!notification) return;
 
+    console.log("we have notification-----33333-------");
+
     const newText =
       response === 'accept'
-        ? notificationTemplates.friend_accepted.replace('{demanding_user}', notification.relatedUsername)
-        : notificationTemplates.friend_declined.replace('{demanding_user}', notification.relatedUsername);
+        ? notificationTemplates.friend_accepted.replace('{demanding_user}', notification.related_username)
+        : notificationTemplates.friend_declined.replace('{demanding_user}', notification.related_username);
 
 
-//console.log("so everything is for the best no ?"+notificationId, response, newText, username,   notification.relatedUsername);
+console.log("so everything is for the best no ?"+notificationId, response, newText, username,   notification.related_username);
 
-    dispatch(updateNotificationResponse({ notificationId, response, newText, username,  relatedUsername: notification.relatedUsername }));
+    dispatch(updateNotificationResponse({ notificationId, response, newText, username,  relatedUsername: notification.related_username }));
   };
 
   return (
@@ -69,11 +72,19 @@ console.log("allright handleFriendRequestResponse------------->>>>");
 
      {/* Display notifications */}
      <ScrollView style={styles.notificationList}>
-       {(notifications?.length ?? 0) === 0 ? (
+      
+       {(
+        
+  
+        notifications?.length ?? 0) === 0 ? (
          <Text style={styles.noNotifications}>No notifications yet.</Text>
+
+         
        ) : (
          [...notifications]
            .sort((a, b) => {
+
+            console.log("we have notification------xxxx-------");
 
              // Move pending friend requests to the top
              if (a.type === 'friend_request' && !a.responded) return -1; // Pending friend requests first
@@ -90,7 +101,7 @@ console.log("allright handleFriendRequestResponse------------->>>>");
                // Use the updated text from Redux or fall back to the template
                const notificationText =
                  notification.text ||
-                 notificationTemplate.replace('{demanding_user}', notification.relatedUsername);
+                 notificationTemplate.replace('{demanding_user}', notification.related_username);
 
                let responseButtons = null;
 
