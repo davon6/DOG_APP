@@ -101,7 +101,11 @@ fetch(`${API_URL}/test`)
     setLoading(true); // Start loading
     setError(''); // Clear previous errors
     try {
-      const response = await axios.post('https://e748-2a04-cec0-11ff-d442-65b7-1d29-eab5-c37.ngrok-free.app/api/users/signin', {
+        //
+        //http://172.20.10.2:3000
+        //https://dog-server-oqyd.onrender.com
+        //https://6313-2a04-cec0-1004-a3cb-b49f-895a-88ea-8b4e.ngrok-free.app
+      const response = await axios.post('https://dog-server-oqyd.onrender.com/api/users/signin', {
         username,
         password,
       });
@@ -127,7 +131,9 @@ fetch(`${API_URL}/test`)
 
 console.log("arriving friends desserves a check + "+JSON.stringify(friends));
 
-      const notifications = await fetchNotificationsApi(username);
+      const { notifications} = await fetchNotificationsApi(username);
+
+      console.log("---------->>>>const notifications = await fetchNotificationsApi(username);",JSON.stringify(notifications));
 
       const data = [username, friends, notifications];
       navigation.navigate('Example', data);

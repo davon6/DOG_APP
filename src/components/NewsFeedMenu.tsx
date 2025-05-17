@@ -47,13 +47,13 @@ console.log("allright handleFriendRequestResponse------------->>>>");
 
     const newText =
       response === 'accept'
-        ? notificationTemplates.friend_accepted.replace('{demanding_user}', notification.relatedUsername)
-        : notificationTemplates.friend_declined.replace('{demanding_user}', notification.relatedUsername);
+        ? notificationTemplates.friend_accepted.replace('{demanding_user}', notification.related_username)
+        : notificationTemplates.friend_declined.replace('{demanding_user}', notification.related_username);
 
 
 //console.log("so everything is for the best no ?"+notificationId, response, newText, username,   notification.relatedUsername);
 
-    dispatch(updateNotificationResponse({ notificationId, response, newText, username,  relatedUsername: notification.relatedUsername }));
+    dispatch(updateNotificationResponse({ notificationId, response, newText, username,  related_username: notification.related_username }));
   };
 
   return (
@@ -90,7 +90,7 @@ console.log("allright handleFriendRequestResponse------------->>>>");
                // Use the updated text from Redux or fall back to the template
                const notificationText =
                  notification.text ||
-                 notificationTemplate.replace('{demanding_user}', notification.relatedUsername);
+                 notificationTemplate.replace('{demanding_user}', notification.related_username);
 
                let responseButtons = null;
 

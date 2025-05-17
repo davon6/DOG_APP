@@ -85,11 +85,11 @@ const Conversations: React.FC<ConversationsProps> = ({ user, friends }) => {
       {friends && friends.length > 0 ? (
         friends.map((friend) => (
           <TouchableOpacity
-            key={friend.username}
+            key={friend.USERNAME}
             style={styles.userButton}
-            onPress={() => onSelectUser(friend.username)}
+            onPress={() => onSelectUser(friend.USERNAME)}
           >
-            <Text style={styles.buttonText}>{friend.username}</Text>
+            <Text style={styles.buttonText}>{friend.USERNAME}</Text>
           </TouchableOpacity>
         ))
       ) : (

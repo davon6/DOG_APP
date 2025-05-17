@@ -77,7 +77,7 @@ const NewDoggiePopup: React.FC<NewDoggiePopupProps> = ({ onClose, onSelectDoggie
     // Filter doggies based on search input
     setFilteredDoggies(
       friendStatuses.filter((doggie) =>
-        doggie.username.toLowerCase().includes(doggieSearch.toLowerCase())
+        doggie.USERNAME.toLowerCase().includes(doggieSearch.toLowerCase())
       )
     );
   }, [doggieSearch, friendStatuses]);  // Re-run filter when search or friendStatuses changes
@@ -113,25 +113,25 @@ const NewDoggiePopup: React.FC<NewDoggiePopupProps> = ({ onClose, onSelectDoggie
       />
      <FlatList
        data={filteredDoggies}
-       keyExtractor={(item) => item.username}
+       keyExtractor={(item) => item.USERNAME}
        renderItem={({ item }) => (
          <View style={styles.listItem}>
 
 
 
 
-             <Text style={styles.userButton}>{item.dog_name} via {item.username}</Text>
+             <Text style={styles.userButton}>{item.DOG_NAME} via {item.USERNAME}</Text>
 
            <TouchableOpacity
              style={styles.iconButton}
              onPress={() => {
                if (item.relationship === 'none') {
-                 sendFriendRequest(userName, item.username)
+                 sendFriendRequest(userName, item.USERNAME)
                    .then(() => {
                    //  Alert.alert('Friend Request', `Friend request sent to ${item.username}!`);
                      setFriendStatuses((prevStatuses) =>
                        prevStatuses.map((status) =>
-                         status.username === item.username
+                         status.USERNAME === item.USERNAME
                            ? { ...status, relationship: 'sent' }
                            : status
                        )

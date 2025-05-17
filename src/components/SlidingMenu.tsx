@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     bottom: 0,
-    width: '65%',
+    width: '75%',
     backgroundColor: 'rgba(255, 255, 255, 0.1)', // Default white background with slight opacity
     zIndex: 1000,
   },

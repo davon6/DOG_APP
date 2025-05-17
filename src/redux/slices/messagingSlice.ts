@@ -385,6 +385,10 @@ export const sendMessage = (conversationId: string, senderUsername: string, text
 
     console.log("the date ------->>>>>>  "+date)
 
+
+
+    const parisTime = new Date(date.toLocaleString("en-US", { timeZone: "Europe/Paris" }));
+
     dispatch(
       addMessage({
         id: tempId,

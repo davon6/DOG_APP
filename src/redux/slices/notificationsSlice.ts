@@ -6,7 +6,7 @@ import { deleteFriendRequest, acceptFriendRequest,fetchNotificationsApi, markNot
 interface Notification {
   id: number;
   type: string;
-  relatedUsername: string;
+  related_username: string;
   extraData: any;
   isRead: boolean;
   createdAt: string;
@@ -73,20 +73,20 @@ export const deleteNotification = createAsyncThunk(
 export const updateNotificationResponse = createAsyncThunk(
   'notifications/updateResponse',
   async (
-    { notificationId, response, newText, username, relatedUsername }:
+    { notificationId, response, newText, username, related_username }:
     { notificationId: number; response: 'accept' | 'decline'; newText: string; userId: number; friendId: number },
     { rejectWithValue }
   ) => {
     try {
 
-        console.log("updateNotificationResponse in slice "+username, relatedUsername, notificationId)
+        console.log("updateNotificationResponse in slice "+username, related_username, notificationId)
 
       if (response === 'accept') {
         // Call the acceptFriendRequest API
-        await acceptFriendRequest(username, relatedUsername, notificationId);
+        await acceptFriendRequest(username, related_username, notificationId);
       } else if (response === 'decline') {
         // Call the deleteFriendRequest API (to allow sending new friend requests later)
-        await deleteFriendRequest(username, relatedUsername, notificationId);
+        await deleteFriendRequest(username, related_username, notificationId);
       }
 
       // Mark the notification as read

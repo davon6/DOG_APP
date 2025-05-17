@@ -2,10 +2,10 @@
 import { notifyFriendRequest, notifyEvent } from "@/services/notification";
 import { receiveMessage } from "@/redux/slices/messagingSlice";
 
-export const handleNotification = (notification, dispatch, setFriend, setUsers2) => {
+export const handleNotification = (notification, dispatch, setFriend, setUsers2, username) => {
   switch (notification.type) {
     case "friend_request":
-      notifyFriendRequest(dispatch, notification.username, [notification]);
+      notifyFriendRequest(dispatch, username, [notification]);
       break;
     case "msg":
       dispatch(

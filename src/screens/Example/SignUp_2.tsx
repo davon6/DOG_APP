@@ -72,8 +72,10 @@ const SignUp_2Screen: React.FC<SignUp_2ScreenProps> = ({ navigation }) => {
 
 
 console.log("await axios.post('http://172.20.10.8:3000/api/users/signup'")
-
-      const response = await axios.post('https://e748-2a04-cec0-11ff-d442-65b7-1d29-eab5-c37.ngrok-free.app/api/users/signup', {
+//https://dog-server-oqyd.onrender.com
+//http://172.20.10.2:3000
+//https://6313-2a04-cec0-1004-a3cb-b49f-895a-88ea-8b4e.ngrok-free.app
+      const response = await axios.post('https://dog-server-oqyd.onrender.com/api/users/signup', {
         username,
         email,
         password,
@@ -141,7 +143,7 @@ try {
 
    console.log("so our new user nqme is ", username);
 
-   let data = [username, ""];
+   let data = [username, "",""];
 
         navigation.navigate('Example',data); // Navigate after success
       }

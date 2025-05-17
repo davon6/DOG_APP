@@ -11,10 +11,10 @@ import { startConversation } from '@/redux/slices/messagingSlice';
 
 // TypeScript Interfaces
 interface Notification {
-  id: string;
+  id: number;
   type: string;
   isRead: boolean;
-  relatedUsername: string;
+  related_username: string;
   text?: string; // Optional for msg type
 }
 
@@ -33,15 +33,15 @@ const handleFriendRequestResponse = (
   username: string
 ) => {
   console.log(
-    `Friend request from ${notification.relatedUsername} ${
+    `Friend request from ${notification.related_username} ${
       response === "accept" ? "accepted" : "declined"
     }.`
   );
 
   let newText =
     response === "accept"
-      ? notificationTemplates.friend_accepted.replace('{demanding_user}', notification.relatedUsername)
-      : notificationTemplates.friend_declined.replace('{demanding_user}', notification.relatedUsername);
+      ? notificationTemplates.friend_accepted.replace('{demanding_user}', notification.related_username)
+      : notificationTemplates.friend_declined.replace('{demanding_user}', notification.related_username);
 
   // Dispatch action (example: update state for friend requests)
   /*dispatch({
@@ -54,9 +54,9 @@ const handleFriendRequestResponse = (
       relatedUsername: notification.relatedUsername,
     },
   });*/
-  console.log('dispatch(updateNotificationResponse({'+notification.id, response, newText, username,notification.relatedUsername );
+  console.log('dispatch(updateNotificationResponse({'+notification.id, response, newText, username,notification.related_username );
 
-   dispatch(updateNotificationResponse({ notificationId: notification.id, response, newText, username,  relatedUsername: notification.relatedUsername }));
+   dispatch(updateNotificationResponse({ notificationId: notification.id, response, newText, username,  related_username: notification.related_username }));
   Toast.hide(); // Hide the toast
 };
 
@@ -85,9 +85,9 @@ export const notifyFriendRequest = (
       type: "custom_friend_request",
       position: "top",
       text1: "New Friend Request",
-      text2: `${notification.relatedUsername} wants to connect with you!`,
+      text2: `${notification.related_username} wants to connect with you!`,
       props: {
-        sender: notification.relatedUsername,
+        sender: notification.related_username,
         onAccept: () =>
           handleFriendRequestResponse(dispatch, notification, "accept", username),
         onDecline: () =>
@@ -133,7 +133,7 @@ export const notifyEvent = (
       text1: `New Message from ${notification.senderUsername}`,
       text2: `${notification.text}`,
       props: {
-        sender: notification.relatedUsername,
+        sender: notification.related_username,
         onClick: async () => {
              const conversationId = await dispatch(startConversation(username, user.username));
 

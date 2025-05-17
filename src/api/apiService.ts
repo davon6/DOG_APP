@@ -5,7 +5,9 @@ import { navigate } from '@/navigators/navigationHelper';
 
 const api = axios.create({
   //baseURL: 'http://172.20.10.2:3000',
-  baseURL: 'https://e748-2a04-cec0-11ff-d442-65b7-1d29-eab5-c37.ngrok-free.app',
+  //https://dog-server-oqyd.onrender.com
+  //https://6313-2a04-cec0-1004-a3cb-b49f-895a-88ea-8b4e.ngrok-free.app
+  baseURL: 'https://dog-server-oqyd.onrender.com',
   headers: {
     'Content-Type': 'application/json',
   },
@@ -108,6 +110,8 @@ export const updateUser = async (username: string, field: object) => {
 export const getFriendStatuses = async (username: string) => {
   try {
     const response = await api.post('/api/friends/status', { username });
+
+    console.log("------------>>>>>"+JSON.stringify(response));
     return response.data;  // This is the list of friend statuses returned from the server
   } catch (error) {
     console.error('Error fetching friend statuses:', error);
@@ -266,7 +270,7 @@ export const fetchNotificationsApi = async (username: string) => {
     console.log("Fetched notifications:");
     console.log(JSON.stringify(response.data));
 
-    return response.data;
+    return response.data.notifications;
   } catch (error) {
     console.error('Error fetching notifications:', error);
     throw error;  // Propagate the error to be handled in the component

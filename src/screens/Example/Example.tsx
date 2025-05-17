@@ -37,11 +37,12 @@ const App = (data) => {
      const handleRadiusUpdate = (newRadius: number) => {
         setRadius(newRadius);  // Set the radius in the parent state
       };
-
-
+//wss://dog-server-oqyd.onrender.com
+//ws://172.20.10.2:3000
+//wss://6313-2a04-cec0-1004-a3cb-b49f-895a-88ea-8b4e.ngrok-free.app
  const username = data.route.params[0];
   const { isConnected, closeWebSocket, friend, users2 } = useWebSocket(
-    'wss://e748-2a04-cec0-11ff-d442-65b7-1d29-eab5-c37.ngrok-free.app',
+    'wss://dog-server-oqyd.onrender.com',
     username, location, radius
   );
   const [friends, setFriends] = useState<Friend[]>(

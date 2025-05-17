@@ -48,7 +48,7 @@ export const useWebSocket = (url, username, location, radius, maxRetryLimit = 5)
     ws.current.onmessage = (event) => {
       const receivedData = JSON.parse(event.data);
       if (receivedData.notification) {
-        handleNotification(receivedData.notification, dispatch, setFriend, setUsers2);
+        handleNotification(receivedData.notification, dispatch, setFriend, setUsers2, username);
       }
     };
 
